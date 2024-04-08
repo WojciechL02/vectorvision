@@ -14,7 +14,7 @@
 
 ## Docs
 See the documentation for detailed information:
-https://e-motion.readthedocs.io/en/latest/
+https://vectorvision.readthedocs.io/en/latest/?badge=latest
 
 ## Installation:
 
