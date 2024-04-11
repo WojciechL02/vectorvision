@@ -80,7 +80,7 @@ def find_path(bitmap: np.array, x_start: int, y_start: int, turdsize: int):
             step_x, step_y = -step_y, step_x
 
     invert_color_inside_path(bitmap, points_in_path)
-    draw_path(bitmap, points_in_path)
+    # draw_path(bitmap, points_in_path)
 
     if area > turdsize:
         yield points_in_path
@@ -142,11 +142,11 @@ def bm_to_paths_list(bitmap: np.array, turdsize: int = 2):
     all_big_paths = list()
 
     for start_point in find_next_path_start(bitmap):
-        print(start_point)
+
         for path in find_path(bitmap, start_point[1], start_point[0]+1, turdsize=turdsize):
             all_big_paths.append(path)
 
-    return paths_list
+    return all_big_paths
     
 
 
