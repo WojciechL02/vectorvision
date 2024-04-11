@@ -137,8 +137,6 @@ def draw_path(bitmap: np.array, path):
 
 def bm_to_paths_list(bitmap: np.array, turdsize: int = 2):
 
-    paths_list = list()
-
     all_big_paths = list()
 
     for start_point in find_next_path_start(bitmap):
@@ -147,6 +145,3 @@ def bm_to_paths_list(bitmap: np.array, turdsize: int = 2):
             all_big_paths.append(path)
 
     return all_big_paths
-    
-
-
