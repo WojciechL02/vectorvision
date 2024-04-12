@@ -1,5 +1,5 @@
-from vectorvision.src.vertex_adjustment import _Curve
-from vectorvision.src.polygons import mod, sign
+from src.vertex_adjustment import _Curve
+from src.polygons import mod, sign
 import math
 
 # /* segment tags */

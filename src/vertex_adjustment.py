@@ -1,5 +1,5 @@
 import math
-from vectorvision.src.polygons import mod, calc_sums
+from src.polygons import mod, calc_sums
 
 
 class _Curve:
@@ -25,6 +25,8 @@ class _Segment:
         self.alpha = 0.0
         self.alpha0 = 0.0
         self.beta = 0.0
+    
+    
 
 def sq(x: float) -> float:
     return x * x
