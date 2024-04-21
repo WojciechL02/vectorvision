@@ -5,24 +5,43 @@ import matplotlib.patches as patches
 
 
 def find_next_path_start(bm):
-
     w = np.nonzero(bm)
 
     while w[0].size != 0:
-        leftmost_point_row_map = np.where(w[1] == w[1][0])   
-        leftmost_point_row_all_points = np.column_stack((w[0][leftmost_point_row_map], w[1][leftmost_point_row_map]))
+        leftmost_point_row_map = np.where(w[1] == w[1][0])
+
+        leftmost_point_row_all_points = np.column_stack(
+            (w[0][leftmost_point_row_map], w[1][leftmost_point_row_map])
+        )
         leftmost_top_point = leftmost_point_row_all_points[0]
-        yield(leftmost_top_point)
+        yield (leftmost_top_point)
 
         w = np.nonzero(bm)
 
 
+def get_next_in_direction_points(x, y, step_x, step_y):
+    cy = y + (step_y - step_x - 1) // 2
+    cx = x + (step_x + step_y - 1) // 2
+
+    dy = y + (step_y + step_x - 1) // 2
+    dx = x + (step_x - step_y - 1) // 2
+    return (cx, cy), (dx, dy)
+
+
+def get_color_from_coord(bitmap, point):
+    try:
+        c = bitmap[point[1]][point[0]]
+    except IndexError:
+        c = 0
+    return c
+
+
 def find_path(bitmap: np.array, x_start: int, y_start: int, turdsize: int):
-    
+
     x = x_start
     y = y_start
     step_x = 0
-    step_y = -1 
+    step_y = -1
     points_in_path = []
     area = 0
 
@@ -40,20 +59,12 @@ def find_path(bitmap: np.array, x_start: int, y_start: int, turdsize: int):
             break
 
         # /* determine next direction */
-        cy = y + (step_y - step_x - 1) // 2
-        cx = x + (step_x + step_y - 1) // 2
-        try:
-            c = bitmap[cy][cx]
-        except IndexError:
-            c = 0
-        dy = y + (step_y + step_x - 1) // 2
-        dx = x + (step_x - step_y - 1) // 2
-        try:
-            d = bitmap[dy][dx]
-        except IndexError:
-            d = 0
+        left, right = get_next_in_direction_points(x, y, step_x, step_y)
 
-        if c and not d:  # /* ambiguous turn */
+        left_color = get_color_from_coord(bitmap, left)
+        right_color = get_color_from_coord(bitmap, right)
+
+        if left_color and not right_color:  # /* ambiguous turn */
 
             # if (
             #     turnpolicy == POTRACE_TURNPOLICY_RIGHT
@@ -73,10 +84,10 @@ def find_path(bitmap: np.array, x_start: int, y_start: int, turdsize: int):
             #     dirx = -diry
             #     diry = tmp
 
-        elif c:  # /* right turn */
+        elif left_color:  # /* left turn */
             step_x, step_y = step_y, -step_x
 
-        elif not d:  # /* left turn */
+        elif not right_color:  # /* right turn */
             step_x, step_y = -step_y, step_x
 
     invert_color_inside_path(bitmap, points_in_path)
@@ -94,15 +105,15 @@ def xor_to_ref(bm: np.array, x: int, y: int, xa: int) -> None:
 
 
 def invert_color_inside_path(bm, points_in_path):
-    
+
     # if len(points_in_path) <= 0:  # /* a path of length 0 is silly, but legal */
     #     return
 
     # leftmost_pixel_x = points_in_path[0][0]
-    
+
     # for point in points_in_path:
     #     x, y = point[0], point[1]
-        
+
     #     # /* efficiently invert the rectangle [x,xa] x [y,y1] */
     #     xor_to_ref(bm, x, y, leftmost_pixel_x)\
     if len(points_in_path) <= 0:  # /* a path of length 0 is silly, but legal */
@@ -116,11 +127,11 @@ def invert_color_inside_path(bm, points_in_path):
             # /* efficiently invert the rectangle [x,xa] x [y,y1] */
             xor_to_ref(bm, x, min(y, y1), xa)
             y1 = y
-    
+
 
 def draw_path(bitmap: np.array, path):
     verts = path
-    line_to_path = len(path) -1
+    line_to_path = len(path) - 1
 
     codes = [
         PlotPath.MOVETO,
@@ -128,7 +139,7 @@ def draw_path(bitmap: np.array, path):
     codes += [PlotPath.LINETO for _ in range(line_to_path)]
 
     path_to_draw = PlotPath(verts, codes)
-    patch = patches.PathPatch(path_to_draw, facecolor='orange', lw=2)
+    patch = patches.PathPatch(path_to_draw, facecolor="orange", lw=2)
     fig, ax = plt.subplots()
     ax.add_patch(patch)
     plt.imshow(bitmap)
@@ -141,7 +152,9 @@ def bm_to_paths_list(bitmap: np.array, turdsize: int = 2):
 
     for start_point in find_next_path_start(bitmap):
 
-        for path in find_path(bitmap, start_point[1], start_point[0]+1, turdsize=turdsize):
+        for path in find_path(
+            bitmap, start_point[1], start_point[0] + 1, turdsize=turdsize
+        ):
             all_big_paths.append(path)
 
     return all_big_paths
