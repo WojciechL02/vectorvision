@@ -8,15 +8,18 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path as PlotPath
 import matplotlib.patches as patches
 
+
 def write(fp, curves):
-    fp.write(f'''<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{image.width}" height="{image.height}" viewBox="0 0 {image.width} {image.height}">''')
+    fp.write(
+        f"""<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{image.width}" height="{image.height}" viewBox="0 0 {image.width} {image.height}">"""
+    )
     parts = list()
     for curve in curves:
         first_segment = curve.segments[-1].c[2]
         parts.append(f"M{first_segment[0]},{first_segment[1]}")
         for segment in curve.segments:
             if segment.tag == POTRACE_CURVETO:
-                a = segment.c[0]  
+                a = segment.c[0]
                 b = segment.c[1]
                 c = segment.c[2]
                 parts.append(f"C{a[0]},{a[1]} {b[0]},{b[1]} {c[0]},{c[1]}")
@@ -25,14 +28,16 @@ def write(fp, curves):
                 b = segment.c[2]
                 parts.append(f"Q{a[0]},{a[1]} {b[0]},{b[1]}")
         parts.append("z")
-    fp.write(f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>')
+    fp.write(
+        f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
+    )
     fp.write("</svg>")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    image = Image.open('test.png')
-    np_image = np.array(image).astype('bool')
+    image = Image.open("test.png")
+    np_image = np.array(image).astype("bool")
     plt.imshow(np_image)
     plt.show()
 
@@ -46,17 +51,18 @@ if __name__ == '__main__':
         verts = np.vstack([np.array(path), path[0]])
         codes = [
             PlotPath.MOVETO,
-        ]   
-        codes += [PlotPath.LINETO for _ in range(verts.shape[0]-2)]
+        ]
+        codes += [PlotPath.LINETO for _ in range(verts.shape[0] - 2)]
         codes.append(PlotPath.CLOSEPOLY)
         verts
         path_to_draw = PlotPath(verts, codes)
-        patch = patches.PathPatch(path_to_draw, facecolor=(0,0,0,0), edgecolor='orange', lw=5)
+        patch = patches.PathPatch(
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+        )
 
         ax.add_patch(patch)
-    plt.imshow(image, cmap='gray')
+    plt.imshow(image, cmap="gray")
     plt.show()
-
 
     fig, ax = plt.subplots()
     for path, polygon in zip(paths_list, longest_straights):
@@ -64,15 +70,17 @@ if __name__ == '__main__':
         verts = np.vstack([np.array(path)[index_list], path[0]])
         codes = [
             PlotPath.MOVETO,
-        ]   
-        codes += [PlotPath.LINETO for _ in range(verts.shape[0]-2)]
+        ]
+        codes += [PlotPath.LINETO for _ in range(verts.shape[0] - 2)]
         codes.append(PlotPath.CLOSEPOLY)
         verts
         path_to_draw = PlotPath(verts, codes)
-        patch = patches.PathPatch(path_to_draw, facecolor=(0,0,0,0), edgecolor='orange', lw=5)
+        patch = patches.PathPatch(
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+        )
 
         ax.add_patch(patch)
-    plt.imshow(image, cmap='gray')
+    plt.imshow(image, cmap="gray")
     plt.show()
 
     fig, ax = plt.subplots()
@@ -81,9 +89,7 @@ if __name__ == '__main__':
         smooth_curve = smooth(curve, 0.5)
         curves.append(smooth_curve)
         verts = [(smooth_curve.segments[0].c[0])]
-        codes = [
-            PlotPath.MOVETO
-        ]
+        codes = [PlotPath.MOVETO]
         for segment in smooth_curve.segments:
             if segment.tag == POTRACE_CURVETO:
                 verts += [segment.c[0], segment.c[1], segment.c[2]]
@@ -91,16 +97,15 @@ if __name__ == '__main__':
             else:
                 verts += [segment.c[1], segment.c[2]]
                 codes += [PlotPath.CURVE3, PlotPath.CURVE3]
-        
 
         path_to_draw = PlotPath(verts, codes)
-        patch = patches.PathPatch(path_to_draw, facecolor=(0,0,0,0), edgecolor='orange', lw=5)
+        patch = patches.PathPatch(
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+        )
         ax.add_patch(patch)
 
-    plt.imshow(np_image, cmap='gray')
+    plt.imshow(np_image, cmap="gray")
     plt.show()
 
-
-
-    with open('test.svg', '+w') as fh:
+    with open("test.svg", "+w") as fh:
         write(fh, curves)
