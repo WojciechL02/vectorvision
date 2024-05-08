@@ -1,45 +1,32 @@
 import math
+import numpy as np
+from collections import namedtuple
 
-class _Sums:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.x2 = 0
-        self.xy = 0
-        self.y2 = 0
 
+Sums = namedtuple(
+    "Sums", ["x", "y", "xy", "x2", "y2"], defaults=[0.0, 0.0, 0.0, 0.0, 0.0]
+)
 
 
 def calc_sums(path) -> int:
-    """!!! Possible rewrite with cumsum"""
+    a = np.array([(0, 0)] + path)
+    a[1:, :] -= np.array(path[0])
+    css = np.cumsum(a, axis=0)
+    cs2 = np.cumsum(np.power(a, 2), axis=0)
+    csm = np.cumsum(a[:, 0] * a[:, 1])
 
-    n = len(path)
-    sums = [_Sums() for i in range(len(path) + 1)]
-
-    # origin
-    start_x = path[0][0]
-    start_y = path[0][1]
-
-    # /* preparatory computation for later fast summing */
-    sums[0].x2 = 0
-    sums[0].xy = 0
-    sums[0].y2 = 0
-    sums[0].x = 0
-    sums[0].y = 0
-    for i in range(n):
-        x = path[i][0] - start_x
-        y = path[i][1] - start_y
-        sums[i + 1].x = sums[i].x + x
-        sums[i + 1].y = sums[i].y + y
-        sums[i + 1].x2 = sums[i].x2 + float(x * x)
-        sums[i + 1].xy = sums[i].xy + float(x * y)
-        sums[i + 1].y2 = sums[i].y2 + float(y * y)
+    sums = []
+    for i in range(len(path) + 1):
+        x, y = css[i]
+        x2, y2 = cs2[i]
+        sums.append(Sums(x, y, csm[i], x2, y2))
     return sums
 
 
 def xprod(p1x, p1y, p2x, p2y) -> float:
     """calculate p1 x p2"""
     return p1x * p2y - p1y * p2x
+
 
 def cyclic(a: int, b: int, c: int) -> int:
     """
@@ -49,7 +36,8 @@ def cyclic(a: int, b: int, c: int) -> int:
         return a <= b < c
     else:
         return a <= b or b < c
-    
+
+
 def sign(x):
     if x > 0:
         return 1
@@ -65,7 +53,7 @@ def mod(a: int, n: int) -> int:
     speeds up the mod function by 70% in the average case (significant
     since the program spends about 16% of its time here - or 40%
     without the test)."""
-    return a % n 
+    return a % n
 
 
 def floordiv(a: int, n: int):
@@ -77,7 +65,6 @@ def floordiv(a: int, n: int):
     return a // n
 
 
-
 def calc_longest_straight_subpaths(path):
     path_len = len(path)
     direction_counter = [0, 0, 0, 0]
@@ -85,8 +72,11 @@ def calc_longest_straight_subpaths(path):
     next_corner = [None] * path_len  # nc[n]: next corner
 
     curr_corner_index = 0
-    for i in range(path_len- 1, -1, -1):
-        if path[i][0] != path[curr_corner_index][0] and path[i][1] != path[curr_corner_index][1]:
+    for i in range(path_len - 1, -1, -1):
+        if (
+            path[i][0] != path[curr_corner_index][0]
+            and path[i][1] != path[curr_corner_index][1]
+        ):
             curr_corner_index = i + 1  # /* necessarily i<n-1 in this case */
         next_corner[i] = curr_corner_index
 
@@ -95,13 +85,18 @@ def calc_longest_straight_subpaths(path):
     # determine pivot points: for each i, let pivk[i] be the furthest k
     # such that all j with i<j<k lie on a line connecting i,k.
 
-    for i in range(path_len-1, -1, -1):
-        
-        direction_counter[0] = direction_counter[1] = direction_counter[2] = direction_counter[3] = 0
+    for i in range(path_len - 1, -1, -1):
+
+        direction_counter[0] = direction_counter[1] = direction_counter[2] = (
+            direction_counter[3]
+        ) = 0
 
         # keep track of "directions" that have occurred
-        direction = (3 + 3 * (path[mod(i + 1, path_len)][0] - path[i][0]) + (path[mod(i + 1, path_len)][1] - path[i][1])) // 2
-        
+        direction = (
+            3
+            + 3 * (path[mod(i + 1, path_len)][0] - path[i][0])
+            + (path[mod(i + 1, path_len)][1] - path[i][1])
+        ) // 2
 
         direction_counter[direction] += 1
 
@@ -115,11 +110,23 @@ def calc_longest_straight_subpaths(path):
         k1 = i
         while True:
             break_inner_loop_and_continue = False
-            direction = int(3 + 3 * sign(path[curr_corner_index][0] - path[k1][0]) + sign(path[curr_corner_index][1] - path[k1][1])) // 2
+            direction = (
+                int(
+                    3
+                    + 3 * sign(path[curr_corner_index][0] - path[k1][0])
+                    + sign(path[curr_corner_index][1] - path[k1][1])
+                )
+                // 2
+            )
             direction_counter[direction] += 1
 
             # if all four "directions" have occurred, cut this path
-            if direction_counter[0] and direction_counter[1] and direction_counter[2] and direction_counter[3]:
+            if (
+                direction_counter[0]
+                and direction_counter[1]
+                and direction_counter[2]
+                and direction_counter[3]
+            ):
                 pivk[i] = k1
                 break_inner_loop_and_continue = True
                 break  # goto foundk;
@@ -195,7 +202,7 @@ def calc_longest_straight_subpaths(path):
     while cyclic(mod(i + 1, path_len), j, longest_straight_subpaths[i]):
         longest_straight_subpaths[i] = j
         i -= 1
-    
+
     return longest_straight_subpaths
 
 
@@ -251,7 +258,9 @@ def get_best_polygon(path) -> int:
     pen = [None] * (path_length + 1)  # /* pen[n+1]: penalty vector */
     prev = [None] * (path_length + 1)  # /* prev[n+1]: best path pointer vector */
     clip0 = [None] * path_length  # /* clip0[n]: longest segment pointer, non-cyclic */
-    clip1 = [None] * (path_length + 1)  # /* clip1[n+1]: backwards segment pointer, non-cyclic */
+    clip1 = [None] * (
+        path_length + 1
+    )  # /* clip1[n+1]: backwards segment pointer, non-cyclic */
     seg0 = [None] * (path_length + 1)  # /* seg0[m+1]: forward segment bounds, m<=n */
     seg1 = [None] * (path_length + 1)  # /* seg1[m+1]: backward segment bounds, m<=n */
 
@@ -316,9 +325,5 @@ def get_best_polygon(path) -> int:
         i = prev[i]
         polygon[j] = i
         j -= 1
-    print(polygon, m
-          )
+    # print(polygon, m)
     return polygon, m
-
-
-
