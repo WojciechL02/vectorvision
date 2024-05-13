@@ -206,6 +206,10 @@ def calc_longest_straight_subpaths(path):
     return longest_straight_subpaths
 
 
+if __name__ == "__main__":
+    print(calc_longest_straight_subpaths([(0, 0), (1, 1), (2, 2), (3, 3)]))
+
+
 def penalty3(path, sums, i: int, j: int) -> float:
     """Auxiliary function: calculate the penalty of an edge from i to j in
     the given path. This needs the "lon" and "sum*" data."""
