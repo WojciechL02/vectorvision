@@ -35,12 +35,13 @@ def write(fp, curves):
 
 
 if __name__ == "__main__":
-
+    # ----- load and draw image -----
     image = Image.open("test.png")
     np_image = np.array(image).astype("bool")
     plt.imshow(np_image)
     plt.show()
 
+    # ===== GENERATE PATHS LIST =====
     paths_list = bm_to_paths_list(np.invert(np_image))
     polygons = [get_best_polygon(path) for path in paths_list]
     longest_straights = [calc_longest_straight_subpaths(path) for path in paths_list]
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         verts
         path_to_draw = PlotPath(verts, codes)
         patch = patches.PathPatch(
-            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
         )
 
         ax.add_patch(patch)
@@ -76,7 +77,7 @@ if __name__ == "__main__":
         verts
         path_to_draw = PlotPath(verts, codes)
         patch = patches.PathPatch(
-            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
         )
 
         ax.add_patch(patch)
@@ -100,7 +101,7 @@ if __name__ == "__main__":
 
         path_to_draw = PlotPath(verts, codes)
         patch = patches.PathPatch(
-            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=5
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
         )
         ax.add_patch(patch)
 
