@@ -31,7 +31,7 @@ class _Segment:
         self.beta = 0.0
 
 
-def fit_least_squares(points: list[int]):
+def fit_least_squares(points: list[tuple[float, float]]) -> tuple[float, float]:
 
     """Fit linear function to given points in 2D with least squares method"""
 
@@ -41,7 +41,9 @@ def fit_least_squares(points: list[int]):
     return lstsq(A, y, rcond=None)[0]
 
 
-def calculate_intersection_point(first_parameters: Tuple[int, int], second_parameters: Tuple[int, int]):
+def calculate_intersection_point(first_parameters: tuple[float, float],
+                                 second_parameters: tuple[float, float]
+                                 ) -> tuple[float, float]:
 
     """Calculate point of intersection for two linear functions"""
 
@@ -52,24 +54,24 @@ def calculate_intersection_point(first_parameters: Tuple[int, int], second_param
     return (x_intersection, y_intersection)
 
 
-def find_closest_point_in_boundary(original_point: Tuple[int, int],
-                                   boundary_center: Tuple[int, int],
+def find_closest_point_in_boundary(original_point: Tuple[float, float],
+                                   boundary_center: Tuple[float, float],
                                    boundary_manhatan_range: float
-                                   ):
+                                   ) -> Point:
 
     """Find point closest to original point but lying inside the square boundary around another point"""
 
     boundary_center_x, boundary_center_y = boundary_center
     poly = Polygon([(boundary_center_x+boundary_manhatan_range, boundary_center_y+boundary_manhatan_range),
                     (boundary_center_x-boundary_manhatan_range, boundary_center_y+boundary_manhatan_range),
-                    (boundary_center_x+boundary_manhatan_range, boundary_center_y-boundary_manhatan_range),
-                    (boundary_center_x-boundary_manhatan_range, boundary_center_y-boundary_manhatan_range)])
+                    (boundary_center_x-boundary_manhatan_range, boundary_center_y-boundary_manhatan_range),
+                    (boundary_center_x+boundary_manhatan_range, boundary_center_y-boundary_manhatan_range)])
     point = Point(original_point)
     p1, p2 = nearest_points(poly, point)
     return p1
 
 
-def adjust_vertices(path: list[(int, int)], polygon_points_idxs: list[int]) -> _Curve:
+def adjust_vertices(path: list[tuple[float, float]], polygon_points_idxs: list[int]) -> _Curve:
     """
     Adjust vertices of optimal polygon: calculate the intersection of
      the two "optimal" line segments, then move it into the unit square
