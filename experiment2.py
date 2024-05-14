@@ -88,7 +88,7 @@ if __name__ == "__main__":
     for path, (polygon, m) in zip(paths_list, polygons):
         curve = adjust_vertices(path, polygon, m)
         smooth_curve = smooth(curve, 0.5)
-        curves.append([smooth_curve])
+        curves.append(smooth_curve)
         verts = [(smooth_curve.segments[0].c[0])]
         codes = [PlotPath.MOVETO]
         for segment in smooth_curve.segments:

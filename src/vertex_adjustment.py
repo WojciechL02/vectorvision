@@ -81,7 +81,7 @@ def adjust_vertices(path, polygon_points, m) -> int:
 
     for i, polygon_point in enumerate(polygon_points[1:]):
 
-        points = [path[prev_point_idx:polygon_point+1]]
+        points = path[prev_point_idx:polygon_point+1]
         coeffs = fit_straight_line(points)
 
         intersection_point = calculate_intersection_point(coeffs, prev_coeff)
