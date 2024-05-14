@@ -88,25 +88,25 @@ if __name__ == "__main__":
     for path, (polygon, m) in zip(paths_list, polygons):
         curve = adjust_vertices(path, polygon, m)
         smooth_curve = smooth(curve, 0.5)
-        curves.append(smooth_curve)
-        # verts = [(smooth_curve.segments[0].c[0])]
-        # codes = [PlotPath.MOVETO]
-        # for segment in smooth_curve.segments:
-        #     if segment.tag == POTRACE_CURVETO:
-        #         verts += [segment.c[0], segment.c[1], segment.c[2]]
-        #         codes += [PlotPath.CURVE4, PlotPath.CURVE4, PlotPath.CURVE4]
-        #     else:
-        #         verts += [segment.c[1], segment.c[2]]
-        #         codes += [PlotPath.CURVE3, PlotPath.CURVE3]
+        curves.append([smooth_curve])
+        verts = [(smooth_curve.segments[0].c[0])]
+        codes = [PlotPath.MOVETO]
+        for segment in smooth_curve.segments:
+            if segment.tag == POTRACE_CURVETO:
+                verts += [segment.c[0], segment.c[1], segment.c[2]]
+                codes += [PlotPath.CURVE4, PlotPath.CURVE4, PlotPath.CURVE4]
+            else:
+                verts += [segment.c[1], segment.c[2]]
+                codes += [PlotPath.CURVE3, PlotPath.CURVE3]
 
-        # path_to_draw = PlotPath(verts, codes)
-        # patch = patches.PathPatch(
-        #     path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
-        # )
-        # ax.add_patch(patch)
+        path_to_draw = PlotPath(verts, codes)
+        patch = patches.PathPatch(
+            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
+        )
+        ax.add_patch(patch)
 
-    # plt.imshow(np_image, cmap="gray")
-    # plt.show()
+    plt.imshow(np_image, cmap="gray")
+    plt.show()
 
     with open("test.svg", "+w") as fh:
         write(fh, curves)
