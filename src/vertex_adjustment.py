@@ -56,14 +56,14 @@ def find_closest_point_in_boundary(original_point, boundary_center, boundary_man
     return p1
 
 
-def adjust_vertices(path, polygon_points, m) -> int:
+def adjust_vertices(path, polygon_points) -> int:
     """
     /* Adjust vertices of optimal polygon: calculate the intersection of
      the two "optimal" line segments, then move it into the unit square
      if it lies outside. Return 1 with errno set on error; 0 on
      success. */
     """
-    curve = _Curve(m)
+    curve = _Curve(len(polygon_points))
 
     points = path[polygon_points[-2]:polygon_points[-1]+1]
     prev_coeff = fit_straight_line(points)

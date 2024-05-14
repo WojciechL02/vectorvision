@@ -330,4 +330,4 @@ def get_best_polygon(path) -> int:
         polygon[j] = i
         j -= 1
     # print(polygon, m)
-    return polygon, m
+    return polygon
