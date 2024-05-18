@@ -29,7 +29,7 @@ def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> N
             else:
                 a = segment.c[1]
                 b = segment.c[2]
-                parts.append(f"Q{a[0]},{a[1]} {b[0]},{b[1]}")
+                parts.append(f"L{a[0]},{a[1]} L{b[0]},{b[1]}")
         parts.append("z")
     fp.write(
         f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
@@ -50,7 +50,7 @@ def convert(image: Image) -> list[_Curve]:
 
     for path, polygon in zip(paths_list, polygons):
         curve = adjust_vertices(path, polygon)
-        smooth_curve = smooth(curve, 0.5)
+        smooth_curve = smooth(curve, 1.0)
         curves.append(smooth_curve)
 
     return curves
