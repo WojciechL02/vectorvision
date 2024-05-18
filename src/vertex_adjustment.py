@@ -86,12 +86,15 @@ def adjust_vertices(path: list[tuple[float, float]], polygon_points_idxs: list[i
     coeffs = fit_least_squares(points)
 
     intersection_point = calculate_intersection_point(coeffs, prev_coeff)
+
     point_in_boundaries = find_closest_point_in_boundary(intersection_point, path[polygon_points_idxs[-1]], 0.5)
+
 
     curve[-1].vertex[0] = point_in_boundaries.x
     curve[-1].vertex[1] = point_in_boundaries.y
     prev_point_idx = polygon_points_idxs[0]
     prev_coeff = coeffs
+
 
     for i, polygon_point in enumerate(polygon_points_idxs[1:]):
 
@@ -99,7 +102,7 @@ def adjust_vertices(path: list[tuple[float, float]], polygon_points_idxs: list[i
         coeffs = fit_least_squares(points)
 
         intersection_point = calculate_intersection_point(coeffs, prev_coeff)
-        point_in_boundaries = find_closest_point_in_boundary(intersection_point, path[polygon_point], 0.5)
+        point_in_boundaries = find_closest_point_in_boundary(intersection_point, path[prev_point_idx], 0.5)
 
         curve[i].vertex[0] = point_in_boundaries.x
         curve[i].vertex[1] = point_in_boundaries.y
