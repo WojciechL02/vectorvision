@@ -2,14 +2,15 @@ from PIL import Image
 import argparse
 import numpy as np
 from src.smoothing import smooth, POTRACE_CURVETO
-from src.decompose import bm_to_paths_list
+
 from src.polygons import get_best_polygon
 from src.vertex_adjustment import adjust_vertices, _Curve
 from typing import TextIO
 
+from src.path_decomposition import Bitmap
+
 
 def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> None:
-
     """Write image described as list of curves in the svg format"""
 
     fp.write(
@@ -38,12 +39,11 @@ def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> N
 
 
 def convert(image: Image) -> list[_Curve]:
+    """Take image as an input and go through all stages of conversion with it.
+    Returns list of curves creating the resulting vector image"""
 
-    """ Take image as an input and go through all stages of conversion with it.
-        Returns list of curves creating the resulting vector image"""
-
-    np_image = np.array(image).astype("bool")
-    paths_list = bm_to_paths_list(np.invert(np_image))
+    bm = Bitmap.from_pil_image(image)
+    paths_list = bm.generate_paths_list()
     polygons = [get_best_polygon(path) for path in paths_list]
 
     curves = list()
@@ -75,3 +75,28 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    # from PIL import ImageOps
+    # import time
+    #
+    # image = Image.open("test_gs.jpeg")
+    # image = ImageOps.grayscale(image)
+    # a = np.array(image)
+    # s = time.process_time()
+    # for color in range(256):
+    #     a = np.where(a == color, 0, 1)
+    #     print(np.all(a))
+    #     if not np.all(a):
+    #         bm = Bitmap(a)
+    #         # print(a.max())
+    #         paths_list = bm.generate_paths_list()
+    #         polygons = [get_best_polygon(path) for path in paths_list]
+    #
+    #         curves = list()
+    #
+    #         for path, polygon in zip(paths_list, polygons):
+    #             curve = adjust_vertices(path, polygon)
+    #             smooth_curve = smooth(curve, 0.5)
+    #             curves.append(smooth_curve)
+    #     print(color)
+    # e = time.process_time()
+    # print("time: ", e - s)
