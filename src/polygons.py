@@ -9,6 +9,9 @@ Sums = namedtuple(
 
 
 def calc_sums(path) -> int:
+    """
+    Calculate cumulative sums for the given path.
+    """
     a = np.array([(0, 0)] + path)
     a[1:, :] -= np.array(path[0])
     css = np.cumsum(a, axis=0)
@@ -24,13 +27,15 @@ def calc_sums(path) -> int:
 
 
 def xprod(p1x, p1y, p2x, p2y) -> float:
-    """calculate p1 x p2"""
+    """
+    Calculate p1 x p2 - a cross product of two 2D points
+    """
     return p1x * p2y - p1y * p2x
 
 
 def cyclic(a: int, b: int, c: int) -> int:
     """
-    /* return 1 if a <= b < c < a, in a cyclic sense (mod n) */
+    return 1 if a <= b < c < a, in a cyclic sense (mod n) 
     """
     if a <= c:
         return a <= b < c
@@ -39,6 +44,9 @@ def cyclic(a: int, b: int, c: int) -> int:
 
 
 def sign(x):
+    """
+    @fixme - consider getting rid of that macro as it can be swithced with numpy.sign
+    """
     if x > 0:
         return 1
     if x < 0:
@@ -48,7 +56,9 @@ def sign(x):
 
 
 def mod(a: int, n: int) -> int:
-    """Note: the "mod" macro works correctly for
+    """
+    @fixme - consider getting rid of that macro as it just mocks the native python command
+    Note: the "mod" macro works correctly for
     negative a. Also note that the test for a>=n, while redundant,
     speeds up the mod function by 70% in the average case (significant
     since the program spends about 16% of its time here - or 40%
@@ -58,6 +68,7 @@ def mod(a: int, n: int) -> int:
 
 def floordiv(a: int, n: int):
     """
+    @fixme - consider getting rid of that macro as it just mocks the native python command
     The "floordiv" macro returns the largest integer <= a/n,
     and again this works correctly for negative a, as long as
     a,n are integers and n>0.
@@ -65,23 +76,36 @@ def floordiv(a: int, n: int):
     return a // n
 
 
-def calc_longest_straight_subpaths(path):
-    path_len = len(path)
-    direction_counter = [0, 0, 0, 0]
-    pivk = [None] * path_len  # pivk[n]
-    next_corner = [None] * path_len  # nc[n]: next corner
-
+def get_next_corners(path):
+    """
+    Function returns the list of indices of next corner for each point in the path. 
+    A corner is defined as a point where the direction changes.
+    
+    """
     curr_corner_index = 0
-    for i in range(path_len - 1, -1, -1):
+    next_corner = [None] * len(path)
+    
+    for i in range(len(path) - 1, -1, -1):
         if (
             path[i][0] != path[curr_corner_index][0]
             and path[i][1] != path[curr_corner_index][1]
-        ):
+            ):
             curr_corner_index = i + 1  # /* necessarily i<n-1 in this case */
+            
         next_corner[i] = curr_corner_index
 
-    longest_straight_subpaths = [None] * path_len
+    return next_corner
 
+
+def calc_longest_straight_subpaths(path):
+    path_len = len(path)
+    direction_counter = [0, 0, 0, 0]
+    pivk = [None] * path_len  # pivk[n] - furthest index from i to k that forms a straight path 
+    longest_straight_subpaths = [None] * path_len
+    
+    next_corner = get_next_corners(path)
+    
+    
     # determine pivot points: for each i, let pivk[i] be the furthest k
     # such that all j with i<j<k lie on a line connecting i,k.
 
@@ -253,9 +277,9 @@ def penalty3(path, sums, i: int, j: int) -> float:
 
 def get_best_polygon(path) -> int:
     """
-    /* find the optimal polygon. Fill in the m and po components. Return 1
-         on failure with errno set, else 0. Non-cyclic version: assumes i=0
-         is in the polygon. Fixme: implement cyclic version. */
+    find the optimal polygon. Fill in the m and po components. Return 1
+    on failure with errno set, else 0. Non-cyclic version: assumes i=0
+    is in the polygon. Fixme: implement cyclic version. 
     """
     path_length = len(path)
     sums = calc_sums(path)
