@@ -43,7 +43,7 @@ def cyclic(a: int, b: int, c: int) -> int:
         return a <= b or b < c
 
 
-def sign(x):
+def sign(x) -> int:
     """
     @fixme - consider getting rid of that macro as it can be swithced with numpy.sign
     """
@@ -66,7 +66,7 @@ def mod(a: int, n: int) -> int:
     return a % n
 
 
-def floordiv(a: int, n: int):
+def floordiv(a: int, n: int) -> int:
     """
     @fixme - consider getting rid of that macro as it just mocks the native python command
     The "floordiv" macro returns the largest integer <= a/n,
@@ -76,52 +76,55 @@ def floordiv(a: int, n: int):
     return a // n
 
 
-def get_next_corners(path):
+def get_next_corners(path: list, path_len: int) -> list:
     """
-    Function returns the list of indices of next corner for each point in the path. 
+    Function returns the list of indices of the next corner for each point in the path. 
     A corner is defined as a point where the direction changes.
     
+    If the path direction changed, switch the current corner to the previously analized point (i+1)  
+    Initially, at the point n-1 we always get the 0 as the next corner, as we are given a closed path.
     """
-    curr_corner_index = 0
-    next_corner = [None] * len(path)
+    current_corner_index = 0
+    next_corner = [None] * path_len
     
-    for i in range(len(path) - 1, -1, -1):
-        if (
-            path[i][0] != path[curr_corner_index][0]
-            and path[i][1] != path[curr_corner_index][1]
-            ):
-            curr_corner_index = i + 1  # /* necessarily i<n-1 in this case */
+    for i in range(path_len - 1, -1, -1):
+        if path[i][0] != path[current_corner_index][0] and path[i][1] != path[current_corner_index][1]:
+            current_corner_index = i + 1  
             
-        next_corner[i] = curr_corner_index
+        next_corner[i] = current_corner_index
 
     return next_corner
 
 
-def calc_longest_straight_subpaths(path):
-    path_len = len(path)
+def compute_direction(point1: tuple, point2: tuple) -> int:
+    """
+    Compute the path direction between two points.
+    Returned direction is an indice of the table direction_counter. 
+    (0,1)[N] == 2, (1,0)[E] == 3, (0, -1)[S] == 1, (-1, 0)[W] == 0
+    """
+    
+    distance_x = point2[0] - point1[0]
+    distance_y = point2[1] - point1[1]
+
+    return (3 + 3 * sign(distance_x) + sign(distance_y)) // 2
+
+
+def get_pivot_points(path, next_corner, path_len):
+    """
+    Function return the list of indexes of pivot points for each point of the path.
+    For each i, pivot point k is the furthest point forming a straight path between them:
+    All of the points j within i<j<k lie on a line connecting i,k.
+    """
+    
+    pivot_points = [None] * path_len 
+    # Counter of the occured directions in a format: [W, S, N, E] 
     direction_counter = [0, 0, 0, 0]
-    pivk = [None] * path_len  # pivk[n] - furthest index from i to k that forms a straight path 
-    longest_straight_subpaths = [None] * path_len
     
-    next_corner = get_next_corners(path)
-    
-    
-    # determine pivot points: for each i, let pivk[i] be the furthest k
-    # such that all j with i<j<k lie on a line connecting i,k.
-
     for i in range(path_len - 1, -1, -1):
-
-        direction_counter[0] = direction_counter[1] = direction_counter[2] = (
-            direction_counter[3]
-        ) = 0
-
-        # keep track of "directions" that have occurred
-        direction = (
-            3
-            + 3 * (path[mod(i + 1, path_len)][0] - path[i][0])
-            + (path[mod(i + 1, path_len)][1] - path[i][1])
-        ) // 2
-
+ 
+        direction_counter[:] = [0, 0, 0, 0]
+        
+        direction = compute_direction(path[i], path[mod(i+1, path_len)])
         direction_counter[direction] += 1
 
         constraint0x = 0
@@ -129,34 +132,22 @@ def calc_longest_straight_subpaths(path):
         constraint1x = 0
         constraint1y = 0
 
-        # find the next k such that no straight line from i to k
-        curr_corner_index = next_corner[i]
-        k1 = i
+        # find the next pivot point index k such that no straight line from i to k
+        current_corner_index = next_corner[i]
+        pivot_index = i
         while True:
             break_inner_loop_and_continue = False
-            direction = (
-                int(
-                    3
-                    + 3 * sign(path[curr_corner_index][0] - path[k1][0])
-                    + sign(path[curr_corner_index][1] - path[k1][1])
-                )
-                // 2
-            )
+            direction = compute_direction(path[pivot_index], path[current_corner_index])
             direction_counter[direction] += 1
 
             # if all four "directions" have occurred, cut this path
-            if (
-                direction_counter[0]
-                and direction_counter[1]
-                and direction_counter[2]
-                and direction_counter[3]
-            ):
-                pivk[i] = k1
+            if all(direction_counter):
+                pivot_points[i] = pivot_index
                 break_inner_loop_and_continue = True
                 break  # goto foundk;
 
-            cur_x = path[curr_corner_index][0] - path[i][0]
-            cur_y = path[curr_corner_index][1] - path[i][1]
+            cur_x = path[current_corner_index][0] - path[i][0]
+            cur_y = path[current_corner_index][1] - path[i][1]
 
             if (
                 xprod(constraint0x, constraint0y, cur_x, cur_y) < 0
@@ -179,9 +170,9 @@ def calc_longest_straight_subpaths(path):
                 if xprod(constraint1x, constraint1y, off_x, off_y) <= 0:
                     constraint1x = off_x
                     constraint1y = off_y
-            k1 = curr_corner_index
-            curr_corner_index = next_corner[k1]
-            if not cyclic(curr_corner_index, i, k1):
+            pivot_index = current_corner_index
+            current_corner_index = next_corner[pivot_index]
+            if not cyclic(current_corner_index, i, pivot_index):
                 break
         if break_inner_loop_and_continue:
             # This previously was a goto to the end of the for i statement.
@@ -191,10 +182,10 @@ def calc_longest_straight_subpaths(path):
         k is the first one violating it. We now need to find the last
         point along k1..k which satisfied the constraint."""
         # dk: direction of k-k1
-        dk_x = sign(path[curr_corner_index][0] - path[k1][0])
-        dk_y = sign(path[curr_corner_index][1] - path[k1][1])
-        cur_x = path[k1][0] - path[i][0]
-        cur_y = path[k1][1] - path[i][1]
+        dk_x = sign(path[current_corner_index][0] - path[pivot_index][0])
+        dk_y = sign(path[current_corner_index][1] - path[pivot_index][1])
+        cur_x = path[pivot_index][0] - path[i][0]
+        cur_y = path[pivot_index][1] - path[i][1]
         """find largest integer j such that xprod(constraint[0], cur+j*dk) >= 0 
         and xprod(constraint[1], cur+j*dk) <= 0. Use bilinearity of xprod. */"""
         a = xprod(constraint0x, constraint0y, cur_x, cur_y)
@@ -208,18 +199,32 @@ def calc_longest_straight_subpaths(path):
             j = floordiv(a, -b)
         if d > 0:
             j = min(j, floordiv(-c, d))
-        pivk[i] = mod(k1 + j, path_len)
+        pivot_points[i] = mod(pivot_index + j, path_len)
         # foundk:
         # /* for i */
+    
+    return pivot_points
 
-    """/* clean up: for each i, let lon[i] be the largest k such that for
-         all i' with i<=i'<k, i'<k<=pivk[i']. */"""
 
-    j = pivk[path_len - 1]
+def calc_longest_straight_subpaths(path):
+    path_len = len(path)
+    longest_straight_subpaths = [None] * path_len
+    
+    next_corner = get_next_corners(path, path_len)
+    pivot_points = get_pivot_points(path, next_corner, path_len)
+    
+    
+    """
+    clean up: for each i, let lon[i] be the largest k such that for
+    all i' with i<=i'<k, i'<k<=pivk[i']. 
+    """
+
+    
+    j = pivot_points[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
     for i in range(path_len - 2, -1, -1):
-        if cyclic(i + 1, pivk[i], j):
-            j = pivk[i]
+        if cyclic(i + 1, pivot_points[i], j):
+            j = pivot_points[i]
         longest_straight_subpaths[i] = j
 
     i = path_len - 1
@@ -231,7 +236,8 @@ def calc_longest_straight_subpaths(path):
 
 
 if __name__ == "__main__":
-    print(calc_longest_straight_subpaths([(0, 0), (1, 1), (2, 2), (3, 3)]))
+    path = [(0, 0), (0, 1), (0, 2), (-1, 2), (-2,2), (-2, 1), (-2, 0), (-1, 0)]
+    print(get_next_corners(path, len(path)))
 
 
 def penalty3(path, sums, i: int, j: int) -> float:
