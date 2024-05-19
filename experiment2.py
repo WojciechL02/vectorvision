@@ -7,14 +7,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.path import Path as PlotPath
 import matplotlib.patches as patches
-
+from main import write_to_svg
 
 
 
 if __name__ == "__main__":
     # ----- load and draw image -----
-    image = Image.open("test.png")
-    np_image = np.array(image).astype("bool")
+    image = Image.open("images/yao.jpg")
+    np_image = np.array(image)[:, :, 1]
+    print(np.max(np_image), np.min(np_image))
+    print(np_image.shape)
+    np_image = np_image > 120
+    print(np_image)
     plt.imshow(np_image)
     plt.show()
 
@@ -62,8 +66,8 @@ if __name__ == "__main__":
     plt.show()
 
     fig, ax = plt.subplots()
-    for path, (polygon, m) in zip(paths_list, polygons):
-        curve = adjust_vertices(path, polygon, m)
+    for path, polygon in zip(paths_list, polygons):
+        curve = adjust_vertices(path, polygon)
         smooth_curve = smooth(curve, 0.5)
         curves.append(smooth_curve)
         verts = [(smooth_curve.segments[0].c[0])]
@@ -85,5 +89,5 @@ if __name__ == "__main__":
     plt.imshow(np_image, cmap="gray")
     plt.show()
 
-    with open("test.svg", "+w") as fh:
-        write(fh, curves)
+    with open("yao.svg", "+w") as fh:
+        write_to_svg(fh, curves)

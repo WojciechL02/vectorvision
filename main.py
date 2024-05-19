@@ -8,7 +8,7 @@ from src.vertex_adjustment import adjust_vertices, _Curve
 from typing import TextIO
 
 
-def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> None:
+def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int, color: str) -> None:
 
     """Write image described as list of curves in the svg format"""
 
@@ -32,18 +32,22 @@ def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> N
                 parts.append(f"L{a[0]},{a[1]} L{b[0]},{b[1]}")
         parts.append("z")
     fp.write(
-        f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
+        f'<path stroke="none" fill="{color}" fill-rule="evenodd" d="{"".join(parts)}"/>'
     )
     fp.write("</svg>")
 
 
-def convert(image: Image) -> list[_Curve]:
+def convert(image: Image, threshold: tuple[int, int]) -> list[_Curve]:
 
     """ Take image as an input and go through all stages of conversion with it.
         Returns list of curves creating the resulting vector image"""
 
-    np_image = np.array(image).astype("bool")
+    np_image = np.array(image)
+    np_image = np_image[:, :, 0]
+    np_image = ((np_image >= threshold[0]) & (np_image <= threshold[1]))
+    print(np.histogram(np_image))
     paths_list = bm_to_paths_list(np.invert(np_image))
+    print(paths_list)
     polygons = [get_best_polygon(path) for path in paths_list]
 
     curves = list()
@@ -67,10 +71,10 @@ def main() -> None:
     args = parser.parse_args()
 
     image = Image.open(args.input_path)
-    curves = convert(image)
+    curves = convert(image, [135, 180])
 
     with open(args.output_path, "+w") as fh:
-        write_to_svg(fh, curves, image.width, image.height)
+        write_to_svg(fh, curves, image.width, image.height, "#000000")
 
 
 if __name__ == "__main__":
