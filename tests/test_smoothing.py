@@ -59,3 +59,35 @@ def test_smooth():
     assert curve[3].c[2] == (9.5, -0.25)
     assert curve[4].c[2] == (-6.5, -3.25)
 
+
+def test_smooth2():
+    curve = _Curve(5)
+    curve[0].vertex = (-16, -8)
+    curve[1].vertex = (-4, 12)
+    curve[2].vertex = (26, 8)
+    curve[3].vertex = (16, -2)
+    curve[4].vertex = (3, 1.5)
+    curve = smooth(curve, 1.07)
+    assert curve[0].tag == 2
+    assert curve[1].tag == 2
+    assert curve[2].tag == 2
+    assert curve[3].tag == 2
+    assert curve[4].tag == 1
+
+    assert curve[0].c[0] == (0, 0)
+    assert curve[1].c[0] == (0, 0)
+    assert curve[2].c[0] == (0, 0)
+    assert curve[3].c[0] == (0, 0)
+    assert curve[4].c[0] == (3, 1.5)
+
+    assert curve[0].c[1] == (-16, -8)
+    assert curve[1].c[1] == (-4, 12)
+    assert curve[2].c[1] == (26, 8)
+    assert curve[3].c[1] == (16, -2)
+    assert curve[4].c[1] == (3, 1.5)
+
+    assert curve[0].c[2] == (-10, 2)
+    assert curve[1].c[2] == (11, 10)
+    assert curve[2].c[2] == (21, 3)
+    assert curve[3].c[2] == (9.5, -0.25)
+    assert curve[4].c[2] == (-6.5, -3.25)

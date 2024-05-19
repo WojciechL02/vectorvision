@@ -47,10 +47,10 @@ def smooth(curve: _Curve, alphamax: float) -> None:
             curve[j].c[1] = curve[j].vertex
             curve[j].c[2] = p4
         else:
-            # if alpha < 0.55:
-            #     alpha = 0.55
-            # elif alpha > 1:
-            #     alpha = 1
+            if alpha < 0.55:
+                alpha = 0.55
+            elif alpha > 1:
+                alpha = 1
             p2 = interval(alpha, curve[i].vertex, curve[j].vertex)
             p3 = interval(alpha, curve[k].vertex, curve[j].vertex)
             curve[j].tag = POTRACE_CURVETO
