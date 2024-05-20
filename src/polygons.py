@@ -26,13 +26,6 @@ def calc_sums(path) -> int:
     return sums
 
 
-def xprod(p1x, p1y, p2x, p2y) -> float:
-    """
-    Calculate p1 x p2 - a cross product of two 2D points
-    """
-    return p1x * p2y - p1y * p2x
-
-
 def cyclic(a: int, b: int, c: int) -> int:
     """
     return 1 if a <= b < c < a, in a cyclic sense (mod n) 
@@ -117,8 +110,8 @@ def get_pivot_points(path, next_corner, path_len):
             cur_y = path[current_corner_index][1] - path[i][1]
 
             if (
-                xprod(constraint0x, constraint0y, cur_x, cur_y) < 0
-                or xprod(constraint1x, constraint1y, cur_x, cur_y) > 0
+                np.cross([constraint0x, constraint0y], [cur_x, cur_y]) < 0
+                or np.cross([constraint1x, constraint1y], [cur_x, cur_y]) > 0
             ):
                 break
 
@@ -129,12 +122,12 @@ def get_pivot_points(path, next_corner, path_len):
             else:
                 off_x = cur_x + (1 if (cur_y >= 0 and (cur_y > 0 or cur_x < 0)) else -1)
                 off_y = cur_y + (1 if (cur_x <= 0 and (cur_x < 0 or cur_y < 0)) else -1)
-                if xprod(constraint0x, constraint0y, off_x, off_y) >= 0:
+                if np.cross([constraint0x, constraint0y], [off_x, off_y]) >= 0:
                     constraint0x = off_x
                     constraint0y = off_y
                 off_x = cur_x + (1 if (cur_y <= 0 and (cur_y < 0 or cur_x < 0)) else -1)
                 off_y = cur_y + (1 if (cur_x >= 0 and (cur_x > 0 or cur_y < 0)) else -1)
-                if xprod(constraint1x, constraint1y, off_x, off_y) <= 0:
+                if np.cross([constraint1x, constraint1y], [off_x, off_y]) <= 0:
                     constraint1x = off_x
                     constraint1y = off_y
             pivot_index = current_corner_index
@@ -155,12 +148,12 @@ def get_pivot_points(path, next_corner, path_len):
         dk_y = np.sign(path[current_corner_index][1] - path[pivot_index][1])
         cur_x = path[pivot_index][0] - path[i][0]
         cur_y = path[pivot_index][1] - path[i][1]
-        """find largest integer j such that xprod(constraint[0], cur+j*dk) >= 0 
+        """find largest integer j such that (constraint[0], cur+j*dk) >= 0 
         and xprod(constraint[1], cur+j*dk) <= 0. Use bilinearity of xprod. */"""
-        a = xprod(constraint0x, constraint0y, cur_x, cur_y)
-        b = xprod(constraint0x, constraint0y, dk_x, dk_y)
-        c = xprod(constraint1x, constraint1y, cur_x, cur_y)
-        d = xprod(constraint1x, constraint1y, dk_x, dk_y)
+        a = np.cross([constraint0x, constraint0y], [cur_x, cur_y])
+        b = np.cross([constraint0x, constraint0y], [dk_x, dk_y])
+        c = np.cross([constraint1x, constraint1y], [cur_x, cur_y])
+        d = np.cross([constraint1x, constraint1y], [dk_x, dk_y])
         """find largest integer j such that a+j*b>=0 and c+j*d<=0. This
         can be solved with integer arithmetic."""
         j = float("inf")
