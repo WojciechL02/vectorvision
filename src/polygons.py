@@ -43,39 +43,6 @@ def cyclic(a: int, b: int, c: int) -> int:
         return a <= b or b < c
 
 
-def sign(x) -> int:
-    """
-    @fixme - consider getting rid of that macro as it can be swithced with numpy.sign
-    """
-    if x > 0:
-        return 1
-    if x < 0:
-        return -1
-    else:
-        return 0
-
-
-def mod(a: int, n: int) -> int:
-    """
-    @fixme - consider getting rid of that macro as it just mocks the native python command
-    Note: the "mod" macro works correctly for
-    negative a. Also note that the test for a>=n, while redundant,
-    speeds up the mod function by 70% in the average case (significant
-    since the program spends about 16% of its time here - or 40%
-    without the test)."""
-    return a % n
-
-
-def floordiv(a: int, n: int) -> int:
-    """
-    @fixme - consider getting rid of that macro as it just mocks the native python command
-    The "floordiv" macro returns the largest integer <= a/n,
-    and again this works correctly for negative a, as long as
-    a,n are integers and n>0.
-    """
-    return a // n
-
-
 def get_next_corners(path: list, path_len: int) -> list:
     """
     Function returns the list of indices of the next corner for each point in the path. 
@@ -106,25 +73,25 @@ def compute_direction(point1: tuple, point2: tuple) -> int:
     distance_x = point2[0] - point1[0]
     distance_y = point2[1] - point1[1]
 
-    return (3 + 3 * sign(distance_x) + sign(distance_y)) // 2
+    return (3 + 3 * np.sign(distance_x) + np.sign(distance_y)) // 2
 
 
 def get_pivot_points(path, next_corner, path_len):
     """
     Function return the list of indexes of pivot points for each point of the path.
-    For each i, pivot point k is the furthest point forming a straight path between them:
-    All of the points j within i<j<k lie on a line connecting i,k.
+    For each i, pivot point k is the furthest point forming a straight path between them, such that:
+    all of the points j within i<j<k lie on a line connecting i,k.
     """
     
-    pivot_points = [None] * path_len 
     # Counter of the occured directions in a format: [W, S, N, E] 
     direction_counter = [0, 0, 0, 0]
+    pivot_points = [None] * path_len 
     
     for i in range(path_len - 1, -1, -1):
  
         direction_counter[:] = [0, 0, 0, 0]
         
-        direction = compute_direction(path[i], path[mod(i+1, path_len)])
+        direction = compute_direction(path[i], path[(i+1) % path_len])
         direction_counter[direction] += 1
 
         constraint0x = 0
@@ -174,16 +141,18 @@ def get_pivot_points(path, next_corner, path_len):
             current_corner_index = next_corner[pivot_index]
             if not cyclic(current_corner_index, i, pivot_index):
                 break
+        
         if break_inner_loop_and_continue:
             # This previously was a goto to the end of the for i statement.
             continue
+        
         # constraint_viol:
         """k1 was the last "corner" satisfying the current constraint, and
         k is the first one violating it. We now need to find the last
         point along k1..k which satisfied the constraint."""
         # dk: direction of k-k1
-        dk_x = sign(path[current_corner_index][0] - path[pivot_index][0])
-        dk_y = sign(path[current_corner_index][1] - path[pivot_index][1])
+        dk_x = np.sign(path[current_corner_index][0] - path[pivot_index][0])
+        dk_y = np.sign(path[current_corner_index][1] - path[pivot_index][1])
         cur_x = path[pivot_index][0] - path[i][0]
         cur_y = path[pivot_index][1] - path[i][1]
         """find largest integer j such that xprod(constraint[0], cur+j*dk) >= 0 
@@ -196,10 +165,10 @@ def get_pivot_points(path, next_corner, path_len):
         can be solved with integer arithmetic."""
         j = float("inf")
         if b < 0:
-            j = floordiv(a, -b)
+            j = a // -b
         if d > 0:
-            j = min(j, floordiv(-c, d))
-        pivot_points[i] = mod(pivot_index + j, path_len)
+            j = min(j, (-c // d))
+        pivot_points[i] = (pivot_index + j) % path_len
         # foundk:
         # /* for i */
     
@@ -218,7 +187,6 @@ def calc_longest_straight_subpaths(path):
     clean up: for each i, let lon[i] be the largest k such that for
     all i' with i<=i'<k, i'<k<=pivk[i']. 
     """
-
     
     j = pivot_points[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
@@ -228,7 +196,7 @@ def calc_longest_straight_subpaths(path):
         longest_straight_subpaths[i] = j
 
     i = path_len - 1
-    while cyclic(mod(i + 1, path_len), j, longest_straight_subpaths[i]):
+    while cyclic((i+1) % path_len, j, longest_straight_subpaths[i]):
         longest_straight_subpaths[i] = j
         i -= 1
 
@@ -301,9 +269,9 @@ def get_best_polygon(path) -> int:
     longest_straight_subpaths = calc_longest_straight_subpaths(path)
     # /* calculate clipped paths */
     for i in range(path_length):
-        c = mod(longest_straight_subpaths[mod(i - 1, path_length)] - 1, path_length)
+        c = (longest_straight_subpaths[(i - 1) % path_length] - 1 ) % path_length
         if c == i:
-            c = mod(i + 1, path_length)
+            c = (i + 1) % path_length
         if c < i:
             clip0[i] = path_length
         else:

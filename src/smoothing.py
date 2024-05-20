@@ -1,5 +1,4 @@
 from src.vertex_adjustment import _Curve
-from src.polygons import mod, sign
 from src.vertex_adjustment import calculate_intersection_point
 import math
 from shapely.geometry import Point, Polygon, LineString
@@ -16,7 +15,7 @@ def dorth_infty(p0, p2):
     return a direction that is 90 degrees counterclockwise from p2-p0,
     but then restricted to one of the major wind directions (n, nw, w, etc)
     """
-    return (-sign(p2[1] - p0[1]), sign(p2[0] - p0[0]))
+    return (-np.sign(p2[1] - p0[1]), np.sign(p2[0] - p0[0]))
 
 
 def dpara(p0, p1, p2) -> float:
