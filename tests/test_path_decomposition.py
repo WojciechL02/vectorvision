@@ -27,6 +27,19 @@ def test_bitmap_getitem():
     assert bm[(0, 0)] == False
 
 
+# ============= _get_color_at_point =============
+
+
+def test_bitmap_get_color_at_point_out_of_range_neg():
+    bm = Bitmap(np.array([[1, 1], [1, 1]]))
+    assert bm._get_color_at_point((-1, -1)) == 0
+
+
+def test_bitmap_get_color_at_point_out_of_range_pos():
+    bm = Bitmap(np.array([[1, 1], [1, 1]]))
+    assert bm._get_color_at_point((2, 2)) == 0
+
+
 # ============= find_next_path_start =============
 
 

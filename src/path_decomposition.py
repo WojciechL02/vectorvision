@@ -73,11 +73,10 @@ class Bitmap:
         Returns:
             Value of the color at the specified point. Returns 0 (white) if point is out of range (by convention).
         """
-        try:
-            c = self.bitmap[point[1]][point[0]]
-        except IndexError:
-            c = 0
-        return c
+        x_size, y_size = self.bitmap.shape
+        if point[1] in range(x_size) and point[0] in range(y_size):
+            return self.bitmap[point[1]][point[0]]
+        return 0
 
     def _get_next_in_direction_points(
         self, x: int, y: int, step_x: int, step_y: int
@@ -202,21 +201,24 @@ class Bitmap:
             right_color = self._get_color_at_point(right)
 
             if left_color and not right_color:
-                if (
-                    turnpolicy == Turnpolicy.RIGHT
-                    or (
-                        turnpolicy == Turnpolicy.MAJORITY
-                        and self._get_majority_value(x, y)
-                    )
-                    or (
-                        turnpolicy == Turnpolicy.MINORITY
-                        and not self._get_majority_value(x, y)
-                    )
-                ):
-                    step_x, step_y = step_y, -step_x  # right turn
-
-                else:
-                    step_x, step_y = -step_y, step_x  # left turn
+                # if (
+                #     turnpolicy == Turnpolicy.RIGHT
+                #     or (
+                #         turnpolicy == Turnpolicy.MAJORITY
+                #         and self._get_majority_value(x, y)
+                #     )
+                #     or (
+                #         turnpolicy == Turnpolicy.MINORITY
+                #         and not self._get_majority_value(x, y)
+                #     )
+                # ):
+                #     step_x, step_y = step_y, -step_x  # right turn
+                #
+                # else:
+                # tmp = dirx  # /* left turn */
+                # dirx = -diry
+                # diry = tmp
+                step_x, step_y = -step_y, step_x  # left turn
 
             elif left_color:  # left turn
                 step_x, step_y = step_y, -step_x
