@@ -75,12 +75,12 @@ def compute_vector(point1: tuple, point2: tuple) -> tuple:
     return [x, y]
 
 
-def vector_is_between(vector, left_constraint, right_constraint):
+def vector_is_not_between(vector, right_constraint, left_constraint):
     """Check if vector is kept between two constraining vectors. 
     """
     return (
-            np.cross(left_constraint, vector) < 0
-            or np.cross(right_constraint, vector) > 0)
+            np.cross(right_constraint, vector) < 0
+            or np.cross(left_constraint, vector) > 0)
 
 
 def get_pivot_points(path, next_corner, path_len):
@@ -100,84 +100,93 @@ def get_pivot_points(path, next_corner, path_len):
         direction = compute_direction(path[i], path[(i+1) % path_len])
         direction_counter[direction] += 1
 
-        left_constraint = [0, 0]
         right_constraint = [0, 0]
+        left_constraint = [0, 0]
         
-        current_corner_index = next_corner[i]
-        pivot_index = i
+        next_corner_index = next_corner[i]
+        last_corner_index = i
         
-        subpath_vector = compute_vector(path[i], path[current_corner_index])
-        direction = compute_direction(path[pivot_index], path[current_corner_index])
+        subpath_vector = compute_vector(path[i], path[next_corner_index])
+        direction = compute_direction(path[last_corner_index], path[next_corner_index])
         direction_counter[direction] += 1
         
+        # find the corners pivot_index - last laying on the straight subpath
+        # current_corner_index - first corner being violating that subpath
         while not (all(direction_counter) or 
-                  vector_is_between(subpath_vector, left_constraint, right_constraint)):
+                  vector_is_not_between(subpath_vector, right_constraint, left_constraint)):
 
             if abs(subpath_vector[0]) > 1 or abs(subpath_vector[1]) > 1:
                 off_x = subpath_vector[0] + (1 if (subpath_vector[1] >= 0 and (subpath_vector[1] > 0 or subpath_vector[0] < 0)) else -1)
                 off_y = subpath_vector[1] + (1 if (subpath_vector[0] <= 0 and (subpath_vector[0] < 0 or subpath_vector[1] < 0)) else -1)
-                if np.cross(left_constraint, [off_x, off_y]) >= 0:
-                    left_constraint[0] = off_x
-                    left_constraint[1] = off_y
-                off_x = subpath_vector[0] + (1 if (subpath_vector[1] <= 0 and (subpath_vector[1] < 0 or subpath_vector[0] < 0)) else -1)
-                off_y = subpath_vector[1] + (1 if (subpath_vector[0] >= 0 and (subpath_vector[0] > 0 or subpath_vector[1] < 0)) else -1)
-                if np.cross(right_constraint, [off_x, off_y]) <= 0:
+                if np.cross(right_constraint, [off_x, off_y]) >= 0:
                     right_constraint[0] = off_x
                     right_constraint[1] = off_y
+                off_x = subpath_vector[0] + (1 if (subpath_vector[1] <= 0 and (subpath_vector[1] < 0 or subpath_vector[0] < 0)) else -1)
+                off_y = subpath_vector[1] + (1 if (subpath_vector[0] >= 0 and (subpath_vector[0] > 0 or subpath_vector[1] < 0)) else -1)
+                if np.cross(left_constraint, [off_x, off_y]) <= 0:
+                    left_constraint[0] = off_x
+                    left_constraint[1] = off_y
                     
-            pivot_index = current_corner_index
-            current_corner_index = next_corner[pivot_index]
-            subpath_vector = compute_vector(path[i], path[current_corner_index])
-            direction = compute_direction(path[pivot_index], path[current_corner_index])
+            last_corner_index = next_corner_index
+            next_corner_index = next_corner[last_corner_index]
+            subpath_vector = compute_vector(path[i], path[next_corner_index])
+            direction = compute_direction(path[last_corner_index], path[next_corner_index])
             direction_counter[direction] += 1
 
-            if not cyclic(current_corner_index, i, pivot_index):
+            if not cyclic(next_corner_index, i, last_corner_index):
                 break
         
             
-        # constraint_viol:
-        """k1 was the last "corner" satisfying the current constraint, and
-        k is the first one violating it. We now need to find the last
-        point along k1..k which satisfied the constraint."""
-        # dk: direction of k-k1
-        dk_x = np.sign(path[current_corner_index][0] - path[pivot_index][0])
-        dk_y = np.sign(path[current_corner_index][1] - path[pivot_index][1])
-        subpath_vector[0] = path[pivot_index][0] - path[i][0]
-        subpath_vector[1] = path[pivot_index][1] - path[i][1]
-        """find largest integer j such that (constraint[0], cur+j*dk) >= 0 
-        and xprod(constraint[1], cur+j*dk) <= 0. Use bilinearity of xprod. */"""
-        a = np.cross(left_constraint, [subpath_vector[0], subpath_vector[1]])
-        b = np.cross(left_constraint, [dk_x, dk_y])
-        c = np.cross(right_constraint, [subpath_vector[0], subpath_vector[1]])
-        d = np.cross(right_constraint, [dk_x, dk_y])
-        """find largest integer j such that a+j*b>=0 and c+j*d<=0. This
-        can be solved with integer arithmetic."""
-        j = float("inf")
+        x_direction = np.sign(path[next_corner_index][0] - path[last_corner_index][0])
+        y_direction = np.sign(path[next_corner_index][1] - path[last_corner_index][1])
+        subpath_vector = compute_vector(path[i], path[last_corner_index])
+        direction_vector = (x_direction, y_direction)
+        
+        # Once we have those 2 corners we can calculate the pivot point
+        # between them that forms a straight subpath from the starting point i
+        
+        # The vector of the desired subpath can be described as:
+        #   V = (vector from i to last_corner_index) + (j * direction vector)
+        #   Where the value j is the distance from the pivot_index to the last point
+        # We're looking for a vector V that is containted between the L&R constraints 
+        # So that: 
+        #   np.cross(right_constraint, subpath_vector + pivot_point * direction_vector) >= 0
+        #   np.cross(left_constraint, subpath_vector + pivot_point * direction_vector) <= 0
+        # The final pivot point = (pivot_index+j) % path_len
+        # And the value j can be calculated from the bilinearity of the cross product as:
+
+        a = np.cross(right_constraint, subpath_vector)
+        b = np.cross(right_constraint, direction_vector)
+ 
+        c = np.cross(left_constraint, subpath_vector)
+        d = np.cross(left_constraint, direction_vector)
+
         if b < 0:
             j = a // -b
-        if d > 0:
-            j = min(j, (-c // d))
-        pivot_points[i] = (pivot_index + j) % path_len
-        # foundk:
-        # /* for i */
+        elif d > 0:
+            j = min(path_len, (-c // d)) 
+        else:
+            j = path_len
+            
+        pivot_points[i] = (last_corner_index + j) % path_len
     
     return pivot_points
 
 
-
 def calc_longest_straight_subpaths(path):
+    
+    
     path_len = len(path)
     longest_straight_subpaths = [None] * path_len
     
     next_corner = get_next_corners(path, path_len)
     pivot_points = get_pivot_points(path, next_corner, path_len)
     
-    
     """
     clean up: for each i, let lon[i] be the largest k such that for
     all i' with i<=i'<k, i'<k<=pivk[i']. 
     """
-    
+
     j = pivot_points[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
     for i in range(path_len - 2, -1, -1):
@@ -191,11 +200,6 @@ def calc_longest_straight_subpaths(path):
         i -= 1
 
     return longest_straight_subpaths
-
-
-if __name__ == "__main__":
-    path = [(0, 0), (0, 1), (0, 2), (-1, 2), (-2,2), (-2, 1), (-2, 0), (-1, 0)]
-    print(get_next_corners(path, len(path)))
 
 
 def penalty3(path, sums, i: int, j: int) -> float:
