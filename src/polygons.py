@@ -8,9 +8,15 @@ Sums = namedtuple(
 )
 
 
-def calc_sums(path) -> int:
-    """
+def calc_sums(path: list) -> namedtuple:
+    """"
     Calculate cumulative sums for the given path.
+
+    Args:
+        path (list): A list of tuples, where each tuple represents a point (x, y).
+
+    Returns:
+        sums (Sums): A list of `Sums` namedtuples, each containing cumulative sums of x, y, xy, x^2, and y^2 coordinates.
     """
     a = np.array([(0, 0)] + path)
     a[1:, :] -= np.array(path[0])
@@ -28,7 +34,15 @@ def calc_sums(path) -> int:
 
 def cyclic(a: int, b: int, c: int) -> bool:
     """
-    return 1 if a <= b < c < a, in a cyclic sense (mod n) 
+    Determine if a value b is between a and c in a cyclic sense.
+
+    Args:
+        a (int): The start value.
+        b (int): The value to check.
+        c (int): The end value.
+
+    Returns:
+        bool: True if a <= b < c in a cyclic sense (mod n), False otherwise.
     """
     if a <= c:
         return a <= b < c
@@ -38,11 +52,15 @@ def cyclic(a: int, b: int, c: int) -> bool:
 
 def get_next_corners(path: list, path_len: int) -> list:
     """
-    Function returns the list of indices of the next corner for each point in the path. 
+    Return the list of indices of the next corner for each point in the path.
     A corner is defined as a point where the direction changes.
-    
-    If the path direction changed, switch the current corner to the previously analized point (i+1)  
-    Initially, at the point n-1 we always get the 0 as the next corner, as we are given a closed path.
+
+    Args:
+        path (list): A list of tuples representing points in the path.
+        path_len (int): The length of the path.
+
+    Returns:
+        list: A list of indices of the next corner for each point in the path.
     """
     current_corner_index = 0
     next_corner = [None] * path_len
@@ -59,10 +77,15 @@ def get_next_corners(path: list, path_len: int) -> list:
 def compute_direction(point1: tuple, point2: tuple) -> int:
     """
     Compute the path direction between two points.
-    Returned direction is an indice of the table direction_counter. 
-    (0,1)[N] == 2, (1,0)[E] == 3, (0, -1)[S] == 1, (-1, 0)[W] == 0
+
+    Args:
+        point1 (tuple): The coordinates of the first point (x, y).
+        point2 (tuple): The coordinates of the second point (x, y).
+
+    Returns:
+        int: The index representing the direction:
+             (0, 1)[N] == 2, (1, 0)[E] == 3, (0, -1)[S] == 1, (-1, 0)[W] == 0.
     """
-    
     distance_x = point2[0] - point1[0]
     distance_y = point2[1] - point1[1]
 
@@ -70,32 +93,59 @@ def compute_direction(point1: tuple, point2: tuple) -> int:
 
 
 def compute_vector(point1: tuple, point2: tuple) -> tuple:
+    """
+    Compute the vector between two points.
+
+    Args:
+        point1 (tuple): The coordinates of the first point (x, y).
+        point2 (tuple): The coordinates of the second point (x, y).
+
+    Returns:
+        tuple: A tuple representing the vector (dx, dy) between the points.
+    """
     x = point2[0] - point1[0]
     y = point2[1] - point1[1]
     return [x, y]
 
 
-def vector_is_not_between(vector, right_constraint, left_constraint):
-    """Check if vector is kept between two constraining vectors. 
+def vector_is_not_between(vector: list, right_constraint: list, left_constraint: list) -> bool:
+    """
+    Check if the vector is kept between two constraining vectors.
+
+    Args:
+        vector (list): The vector to be checked.
+        right_constraint (list): The right constraint vector.
+        left_constraint (list): The left constraint vector.
+
+    Returns:
+        bool: True if the vector is not between the two constraints, False otherwise.
     """
     return (
             np.cross(right_constraint, vector) < 0
             or np.cross(left_constraint, vector) > 0)
 
 
-def get_pivot_points(path, next_corner, path_len):
+def get_pivot_points(path: list, next_corner: list, path_len: int) -> list:
     """
-    Function return the list of indexes of pivot points for each point of the path.
-    For each i, pivot point k is the furthest point forming a straight path between them, such that:
-    all of the points j within i<j<k lie on a line connecting i,k.
-    """
+    Calculate the pivot points for each point in the path.
 
+    For each index i, the pivot point k is the furthest point forming a straight path between them, such that:
+    all of the points j within i < j < k lie on a line connecting i, k.
+
+    Args:
+        path (list): The list of points representing the path.
+        next_corner (list): The list of indices of the next corner for each point in the path.
+        path_len (int): The length of the path.
+
+    Returns:
+        list: A list of indexes of pivot points for each point of the path.
+    """
     # Counter of the occured directions in a format: [W, S, N, E] 
     direction_counter = [0, 0, 0, 0]
     pivot_points = [None] * path_len 
     
     for i in range(path_len - 1, -1, -1):
- 
+
         direction_counter[:] = [0, 0, 0, 0]
         direction = compute_direction(path[i], path[(i+1) % path_len])
         direction_counter[direction] += 1
@@ -110,8 +160,8 @@ def get_pivot_points(path, next_corner, path_len):
         direction = compute_direction(path[last_corner_index], path[next_corner_index])
         direction_counter[direction] += 1
         
-        # find the corners pivot_index - last laying on the straight subpath
-        # current_corner_index - first corner being violating that subpath
+        # find the last corner that is laying on the straight subpath
+        # next_corner_index is the first corner that violates the constraints
         while not (all(direction_counter) or 
                   vector_is_not_between(subpath_vector, right_constraint, left_constraint)):
 
@@ -152,7 +202,7 @@ def get_pivot_points(path, next_corner, path_len):
         # So that: 
         #   np.cross(right_constraint, subpath_vector + pivot_point * direction_vector) >= 0
         #   np.cross(left_constraint, subpath_vector + pivot_point * direction_vector) <= 0
-        # The final pivot point = (pivot_index+j) % path_len
+        # The final pivot point = (last_corner_index + j) % path_len
         # And the value j can be calculated from the bilinearity of the cross product as:
 
         a = np.cross(right_constraint, subpath_vector)
@@ -173,10 +223,15 @@ def get_pivot_points(path, next_corner, path_len):
     return pivot_points
 
 
-def get_longest_straight_subpaths(path):
+def get_longest_straight_subpaths(path: list) -> list:
     """
-    Function takes the path as a list of points, and returns a
-    list of the point indexes forming longest straight subpaths.
+    Return a list of indexes forming the longest straight subpaths in the given path.
+
+    Args:
+        path (list): A list of points representing the path.
+
+    Returns:
+        list: A list of point indexes forming the longest straight subpaths.
     """
     path_len = len(path)
     longest_straight_subpaths = [None] * path_len
@@ -184,8 +239,9 @@ def get_longest_straight_subpaths(path):
     next_corner = get_next_corners(path, path_len)
     pivot_point = get_pivot_points(path, next_corner, path_len)
     
-    # Remove the cyclicly inacurate points so that the longest_straight_subpaths[i]
-    # would be the largest k such that for all i' with i<=i'<k, i'<k<=pivk[i'].
+    # Remove the cyclic inaccuracies so that longest_straight_subpaths[i]
+    # represents the largest k such that for all i' with i <= i' < k, i' < k <= pivot_point[i'].
+    
     
     j = pivot_point[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
@@ -202,21 +258,19 @@ def get_longest_straight_subpaths(path):
     return longest_straight_subpaths
 
 
-def penalty3(path, sums, i: int, j: int) -> float:#
+def penalty3(path: list, sums: list, i: int, j: int) -> float:
     """
     Calculate the penalty of an edge from point i to point j in the given path.
-    We assume that 0 <= i < j <= path_len
-     
-    Parameters:
-    - path: List of points representing the path.
-    - sums: List of precomputed sums used for penalty calculations.
-    - i: Starting point index.
-    - j: Ending point index.
+
+    Args:
+        path (list): List of points representing the path.
+        sums (list): List of precomputed sums used for penalty calculations.
+        i (int): Starting point index.
+        j (int): Ending point index.
 
     Returns:
-    - Penalty value as a float.
+        float: Penalty value.
     """
-   
     path_len = len(path)
 
     rotations = 0
@@ -253,45 +307,71 @@ def penalty3(path, sums, i: int, j: int) -> float:#
     return penalty
 
 
-def clip_path_forward(longest_straight_subpaths, path_len):
-    # Calculate forward clipping path
-    clip0 = [None] * path_len
+def clip_path_forward(longest_straight_subpaths: list, path_len: int) -> list:
+    """
+    Calculate the forward clipping path.
+
+    Args:
+        longest_straight_subpaths (list): List of point indexes forming the longest straight subpaths.
+        path_len (int): Length of the path.
+
+    Returns:
+        list: Forward clipping path.
+    """
+    forward_clips = [None] * path_len
     
     for i in range(path_len):
         c = (longest_straight_subpaths[(i - 1) % path_len] - 1 ) % path_len
         if c == i:
             c = (i + 1) % path_len
         if c < i:
-            clip0[i] = path_len
+            forward_clips[i] = path_len
         else:
-            clip0[i] = c
+            forward_clips[i] = c
 
-    return clip0
+    return forward_clips
     
 
-def clip_path_backward(clip0, path_len):
-    # /* calculate backwards path clipping, non-cyclic. j <= clip0[i] iff
-    # clip1[j] <= i, for i,j=0..n. */
+def clip_path_backward(forward_clips: list, path_len: int) -> list:
+    """
+    Calculate the backward clipping path, non-cyclic.
+
+    Args:
+        forward_clips (list): Forward clipping path.
+        path_len (int): Length of the path.
+
+    Returns:
+        list: Backward clipping path.
+    """
     
-    clip1 = [None] * (path_len + 1)
+    backward_clips = [None] * (path_len + 1)
     
     j = 1
     for i in range(path_len):
-        while j <= clip0[i]:
-            clip1[j] = i
+        while j <= forward_clips[i]:
+            backward_clips[j] = i
             j += 1
     
-    return clip1
+    return backward_clips
 
 
-def get_segment_bounds_forward(clip0, path_len):
-    # calculate seg0[j] = longest path from 0 with j segments */
+def get_segment_bounds_forward(forward_clips: list, path_len: int) -> tuple:
+    """
+    Calculate the forward segment bounds.
+
+    Args:
+        forward_clips (list): Forward clipping path.
+        path_len (int): Length of the path.
+
+    Returns:
+        tuple: A tuple containing the number of segments and the forward segment bounds.
+    """
     seg_bounds_F = [None] * (path_len + 1)
     i = 0
     j = 0
     while i < path_len:
         seg_bounds_F[j] = i
-        i = clip0[i]
+        i = forward_clips[i]
         j += 1
     seg_bounds_F[j] = path_len
     segment_num = j
@@ -299,30 +379,40 @@ def get_segment_bounds_forward(clip0, path_len):
     return  segment_num, seg_bounds_F
 
 
-def get_segment_bounds_backward(clip1, segment_num, path_len):
-    # calculate seg1[j] = longest path to n with m-j segments */
+def get_segment_bounds_backward(backward_clips: list, segment_num: int, path_len: int) -> list:
+    """
+    Calculate the backward segment bounds.
+
+    Args:
+        backward_clips (list): Backward clipping path.
+        segment_num (int): Number of segments.
+        path_len (int): Length of the path.
+
+    Returns:
+        list: Backward segment bounds.
+    """
     seg_bounds_B = [None] * (path_len + 1)
     i = path_len
     
     for j in range(segment_num, 0, -1):
         seg_bounds_B[j] = i
-        i = clip1[i]
+        i = backward_clips[i]
     seg_bounds_B[0] = 0
 
     return seg_bounds_B
 
 
-def get_best_polygon(path) -> int:
+def get_best_polygon(path: list) -> list:
     """
     Find the optimal polygon for the given path. 
     This function fills in the m and po components and returns the optimal polygon.
     Assumes i=0 is in the polygon. This is a non-cyclic version.
-    
-    Parameters:
-    - path: List of points representing the path.
-    
+
+    Args:
+        path (list): List of points representing the path.
+
     Returns:
-    - Optimal polygon as a list of point indices.
+        list: Optimal polygon as a list of point indices.
     """
     
     path_len = len(path)
@@ -332,22 +422,17 @@ def get_best_polygon(path) -> int:
     penalties = [None] * (path_len + 1)  
     best_path_vector = [None] * (path_len + 1) 
     
-    clip0 = clip_path_forward(longest_straight_subpaths, path_len)  # longest segment pointer, non-cyclic 
-    clip1 = clip_path_backward(clip0, path_len) # backwards segment pointer, non-cyclic
+    forward_clips = clip_path_forward(longest_straight_subpaths, path_len)  # longest segment pointer, non-cyclic 
+    backward_clips = clip_path_backward(forward_clips, path_len) # backwards segment pointer, non-cyclic
     
-    segments_num, seg_bounds_F = get_segment_bounds_forward(clip0, path_len) # forward segment bounds, m<=n
-    seg_bounds_B = get_segment_bounds_backward(clip1, segments_num, path_len)  # backward segment bounds, m<=n
+    segments_num, seg_bounds_F = get_segment_bounds_forward(forward_clips, path_len) # forward segment bounds
+    seg_bounds_B = get_segment_bounds_backward(backward_clips, segments_num, path_len)  # backward segment bounds
 
-    """now find the shortest path with m segments, based on penalty3 */
-    /* note: the outer 2 loops jointly have at most n iterations, thus
-         the worst-case behavior here is quadratic. In practice, it is
-         close to linear since the inner loop tends to be short. */
-         """
     penalties[0] = 0
     for j in range(1, segments_num + 1):
         for i in range(seg_bounds_B[j], seg_bounds_F[j] + 1):
             best = -1
-            for k in range(seg_bounds_F[j - 1], clip1[i] - 1, -1):
+            for k in range(seg_bounds_F[j - 1], backward_clips[i] - 1, -1):
                 thispen = penalty3(path, sums, k, i) + penalties[k]
                 if best < 0 or thispen < best:
                     best_path_vector[i] = k
@@ -356,16 +441,12 @@ def get_best_polygon(path) -> int:
 
     polygon = [None] * segments_num
 
-    # /* read off shortest path */
+    # Save the best polygon path from the best_path_vector
     i = path_len
     j = segments_num - 1
     while i > 0:
         i = best_path_vector[i]
         polygon[j] = i
         j -= 1
-    
-    print(f'vector: {best_path_vector}')
-    print(f'polygon: {polygon}')
-    
     
     return polygon
