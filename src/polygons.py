@@ -203,44 +203,54 @@ def get_longest_straight_subpaths(path):
 
 
 def penalty3(path, sums, i: int, j: int) -> float:#
-    """Auxiliary function: calculate the penalty of an edge from i to j in
-    the given path. This needs the "lon" and "sum*" data."""
-    n = len(path)
+    """
+    Calculate the penalty of an edge from point i to point j in the given path.
+    We assume that 0 <= i < j <= path_len
+     
+    Parameters:
+    - path: List of points representing the path.
+    - sums: List of precomputed sums used for penalty calculations.
+    - i: Starting point index.
+    - j: Ending point index.
 
-    # /* assume 0<=i<j<=n    */
+    Returns:
+    - Penalty value as a float.
+    """
+   
+    path_len = len(path)
 
-    r = 0  # /* rotations from i to j */
-    if j >= n:
-        j -= n
-        r = 1
+    rotations = 0
+    if j >= path_len:
+        j -= path_len
+        rotations = 1
 
-    # /* critical inner loop: the "if" gives a 4.6 percent speedup */
-    if r == 0:
-        x = sums[j + 1].x - sums[i].x
-        y = sums[j + 1].y - sums[i].y
-        x2 = sums[j + 1].x2 - sums[i].x2
-        xy = sums[j + 1].xy - sums[i].xy
-        y2 = sums[j + 1].y2 - sums[i].y2
+    if rotations == 0:
+        segment_sum_x = sums[j + 1].x - sums[i].x
+        segment_sum_y = sums[j + 1].y - sums[i].y
+        segment_sum_x2 = sums[j + 1].x2 - sums[i].x2
+        segment_sum_xy = sums[j + 1].xy - sums[i].xy
+        segment_sum_y2 = sums[j + 1].y2 - sums[i].y2
         k = j + 1 - i
     else:
-        x = sums[j + 1].x - sums[i].x + sums[n].x
-        y = sums[j + 1].y - sums[i].y + sums[n].y
-        x2 = sums[j + 1].x2 - sums[i].x2 + sums[n].x2
-        xy = sums[j + 1].xy - sums[i].xy + sums[n].xy
-        y2 = sums[j + 1].y2 - sums[i].y2 + sums[n].y2
-        k = j + 1 - i + n
+        segment_sum_x = sums[j + 1].x - sums[i].x + sums[path_len].x
+        segment_sum_y = sums[j + 1].y - sums[i].y + sums[path_len].y
+        segment_sum_x2 = sums[j + 1].x2 - sums[i].x2 + sums[path_len].x2
+        segment_sum_xy = sums[j + 1].xy - sums[i].xy + sums[path_len].xy
+        segment_sum_y2 = sums[j + 1].y2 - sums[i].y2 + sums[path_len].y2
+        k = j + 1 - i + path_len
 
-    px = (path[i][0] + path[j][0]) / 2.0 - path[0][0]
-    py = (path[i][1] + path[j][1]) / 2.0 - path[0][1]
-    ey = path[j][0] - path[i][0]
-    ex = -(path[j][1] - path[i][1])
+    mid_x = (path[i][0] + path[j][0]) / 2.0 - path[0][0]
+    mid_y = (path[i][1] + path[j][1]) / 2.0 - path[0][1]
+    edge_y = path[j][0] - path[i][0]
+    edge_x = -(path[j][1] - path[i][1])
 
-    a = (x2 - 2 * x * px) / k + px * px
-    b = (xy - x * py - y * px) / k + px * py
-    c = (y2 - 2 * y * py) / k + py * py
+    # Calculate the componenets of the Penalty equation from the paper
+    a = (segment_sum_x2 - 2 * segment_sum_x * mid_x) / k + mid_x * mid_x
+    b = (segment_sum_xy - segment_sum_x * mid_y - segment_sum_y * mid_x) / k + mid_x * mid_y
+    c = (segment_sum_y2 - 2 * segment_sum_y * mid_y) / k + mid_y * mid_y
 
-    s = ex * ex * a + 2 * ex * ey * b + ey * ey * c
-    return math.sqrt(s)
+    penalty = math.sqrt(edge_x * edge_x * a + 2 * edge_x * edge_y * b + edge_y * edge_y * c)
+    return penalty
 
 
 def get_best_polygon(path) -> int:
@@ -249,32 +259,30 @@ def get_best_polygon(path) -> int:
     on failure with errno set, else 0. Non-cyclic version: assumes i=0
     is in the polygon. Fixme: implement cyclic version. 
     """
-    path_length = len(path)
+    path_len = len(path)
     sums = calc_sums(path)
-    pen = [None] * (path_length + 1)  # /* pen[n+1]: penalty vector */
-    prev = [None] * (path_length + 1)  # /* prev[n+1]: best path pointer vector */
-    clip0 = [None] * path_length  # /* clip0[n]: longest segment pointer, non-cyclic */
-    clip1 = [None] * (
-        path_length + 1
-    )  # /* clip1[n+1]: backwards segment pointer, non-cyclic */
-    seg0 = [None] * (path_length + 1)  # /* seg0[m+1]: forward segment bounds, m<=n */
-    seg1 = [None] * (path_length + 1)  # /* seg1[m+1]: backward segment bounds, m<=n */
+    penalties = [None] * (path_len + 1)  # /* pen[n+1]: penalty vector */
+    best_path_vector = [None] * (path_len + 1)  # /* prev[n+1]: best path pointer vector */
+    clip0 = [None] * path_len  # /* clip0[n]: longest segment pointer, non-cyclic */
+    clip1 = [None] * (   path_len + 1)  # /* clip1[n+1]: backwards segment pointer, non-cyclic */
+    seg0 = [None] * (path_len + 1)  # /* seg0[m+1]: forward segment bounds, m<=n */
+    seg1 = [None] * (path_len + 1)  # /* seg1[m+1]: backward segment bounds, m<=n */
 
     longest_straight_subpaths = get_longest_straight_subpaths(path)
     # /* calculate clipped paths */
-    for i in range(path_length):
-        c = (longest_straight_subpaths[(i - 1) % path_length] - 1 ) % path_length
+    for i in range(path_len):
+        c = (longest_straight_subpaths[(i - 1) % path_len] - 1 ) % path_len
         if c == i:
-            c = (i + 1) % path_length
+            c = (i + 1) % path_len
         if c < i:
-            clip0[i] = path_length
+            clip0[i] = path_len
         else:
             clip0[i] = c
 
     # /* calculate backwards path clipping, non-cyclic. j <= clip0[i] iff
     # clip1[j] <= i, for i,j=0..n. */
     j = 1
-    for i in range(path_length):
+    for i in range(path_len):
         while j <= clip0[i]:
             clip1[j] = i
             j += 1
@@ -282,15 +290,15 @@ def get_best_polygon(path) -> int:
     # calculate seg0[j] = longest path from 0 with j segments */
     i = 0
     j = 0
-    while i < path_length:
+    while i < path_len:
         seg0[j] = i
         i = clip0[i]
         j += 1
-    seg0[j] = path_length
+    seg0[j] = path_len
     m = j
 
     # calculate seg1[j] = longest path to n with m-j segments */
-    i = path_length
+    i = path_len
     for j in range(m, 0, -1):
         seg1[j] = i
         i = clip1[i]
@@ -301,24 +309,24 @@ def get_best_polygon(path) -> int:
          the worst-case behavior here is quadratic. In practice, it is
          close to linear since the inner loop tends to be short. */
          """
-    pen[0] = 0
+    penalties[0] = 0
     for j in range(1, m + 1):
         for i in range(seg1[j], seg0[j] + 1):
             best = -1
             for k in range(seg0[j - 1], clip1[i] - 1, -1):
-                thispen = penalty3(path, sums, k, i) + pen[k]
+                thispen = penalty3(path, sums, k, i) + penalties[k]
                 if best < 0 or thispen < best:
-                    prev[i] = k
+                    best_path_vector[i] = k
                     best = thispen
-            pen[i] = best
+            penalties[i] = best
 
     polygon = [None] * m
 
     # /* read off shortest path */
-    i = path_length
+    i = path_len
     j = m - 1
     while i > 0:
-        i = prev[i]
+        i = best_path_vector[i]
         polygon[j] = i
         j -= 1
     
