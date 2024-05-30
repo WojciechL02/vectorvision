@@ -64,7 +64,7 @@ class Converter:
             curves = list()
             for path, polygon in zip(paths_list, polygons):
                 curve = adjust_vertices(path, polygon)
-                smooth_curve = smooth(curve, 0.5)
+                smooth_curve = smooth(curve, 10000)
                 curves.append(smooth_curve)
             self._write_path_to_svg(fh, curves, color, opacity)
 
@@ -80,11 +80,11 @@ class Converter:
                     a = segment.c[0]
                     b = segment.c[1]
                     c = segment.c[2]
-                    parts.append(f"C{a[0]},{a[1]} {b[0]},{b[1]} {c[0]},{c[1]}")
+                    parts.append(f"C{a[0]} {a[1]}, {b[0]} {b[1]}, {c[0]} {c[1]}")
                 else:
                     a = segment.c[1]
                     b = segment.c[2]
-                    parts.append(f"Q{a[0]},{a[1]} {b[0]},{b[1]}")
+                    parts.append(f"L{a[0]} {a[1]} {b[0]},{b[1]}")
             parts.append("z")
 
         rgb_color = (color, color, color)
