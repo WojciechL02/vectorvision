@@ -1,4 +1,4 @@
-from vertex_adjustment import _Curve
+from src.vertex_adjustment import _Curve
 import numpy as np
 import math
 POTRACE_CURVETO = 1
@@ -155,14 +155,15 @@ def opti_penalty(
     k = i
     i1 = (i + 1) % n_of_segments
     k1 = (k + 1) % n_of_segments
+
     conv = convc[k1]
     if conv == 0:
         return 1
     d = ddist(curve[i].vertex, curve[i1].vertex)
     k = k1
     while k != j:
-        k1 = k + 1 % n_of_segments
-        k2 = k + 2 % n_of_segments
+        k1 = (k + 1) % n_of_segments
+        k2 = (k + 2) % n_of_segments
         if convc[k1] != conv:
             return 1
         if (
@@ -392,36 +393,4 @@ def _opticurve(curve: _Curve, opttolerance: float) -> int:
         i1 = (i + 1) % om
         new_curve[i].beta = s[i] / (s[i] + t[i1])
     new_curve.alphacurve = True
-    return 0
-
-
-# /* ---------------------------------------------------------------------- */
-
-
-def process_path(
-    plist: list,
-    alphamax=1.0,
-    opticurve=True,
-    opttolerance=0.2,
-) -> int:
-    """/* return 0 on success, 1 on error with errno set. */"""
-
-    def TRY(x):
-        if x:
-            raise ValueError
-
-    # /* call downstream function with each path */
-    for p in plist:
-        TRY(_calc_sums(p))
-        TRY(_calc_lon(p))
-        TRY(_bestpolygon(p))
-        TRY(_adjust_vertices(p))
-        if not p.sign:  # /* reverse orientation of negative paths */
-            reverse(p._curve)
-        _smooth(p._curve, alphamax)
-        if opticurve:
-            TRY(_opticurve(p, opttolerance))
-            p._fcurve = p._ocurve
-        else:
-            p._fcurve = p._curve
-    return 0
+    return new_curve
