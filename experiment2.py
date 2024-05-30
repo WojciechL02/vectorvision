@@ -86,32 +86,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     for path, polygon in zip(paths_list, polygons):
         curve = adjust_vertices(path, polygon)
-<<<<<<< HEAD
-        curves.append(curve)
-        verts = np.vstack([np.array([x.vertex for x in curve.segments]), curve.segments[0].vertex])
-        codes = [
-            PlotPath.MOVETO,
-        ]
-        codes += [PlotPath.LINETO for _ in range(verts.shape[0] - 2)]
-        codes.append(PlotPath.CLOSEPOLY)
-        path_to_draw = PlotPath(verts, codes)
-        patch = patches.PathPatch(
-            path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
-        )
-
-        ax.add_patch(patch)
-        ax.add_patch(patch)
-
-    plt.imshow(np_image, cmap="gray")
-    plt.show()
-
-    fig, ax = plt.subplots()
-    for path, polygon in zip(paths_list, polygons):
-        curve = adjust_vertices(path, polygon)
-        smooth_curve = smooth(curve, 1.5)
-=======
         smooth_curve = smooth(curve, 1)
->>>>>>> 509935b (add curve optimization step to experiments)
         curves.append(smooth_curve)
         verts = [(smooth_curve.segments[0].c[0])]
         codes = [PlotPath.MOVETO]
@@ -128,11 +103,6 @@ if __name__ == "__main__":
             path_to_draw, facecolor=(0, 0, 0, 0), edgecolor="orange", lw=2
         )
         ax.add_patch(patch)
-<<<<<<< HEAD
-
-    plt.imshow(np_image, cmap="gray")
-    plt.show()
-=======
     plt.imshow(image, cmap="gray")
     plt.show()
 
@@ -166,4 +136,3 @@ if __name__ == "__main__":
     
     with open("test_optim.svg", "+w") as fh:
         write_to_svg(fh, opti_curves, image.width, image.height)
->>>>>>> 509935b (add curve optimization step to experiments)

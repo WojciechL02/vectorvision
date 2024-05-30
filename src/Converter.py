@@ -1,6 +1,5 @@
 from PIL import ImageOps, Image
 import time
-import os
 import numpy as np
 from src.path_decomposition import Bitmap
 from src.smoothing import smooth, POTRACE_CURVETO
