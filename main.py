@@ -1,59 +1,7 @@
-from PIL import Image
+import os
 import argparse
-import numpy as np
-from src.smoothing import smooth, POTRACE_CURVETO
-from src.decompose import bm_to_paths_list
-from src.polygons import get_best_polygon
-from src.vertex_adjustment import adjust_vertices, _Curve
-from typing import TextIO
-
-
-def write_to_svg(fp: TextIO, curves: list[_Curve], width: int, height: int) -> None:
-
-    """Write image described as list of curves in the svg format"""
-
-    fp.write(
-        f"""<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-          width="{width}" height="{height}" viewBox="0 0 {width} {height}">"""
-    )
-    parts = list()
-    for curve in curves:
-        first_segment = curve.segments[-1].c[2]
-        parts.append(f"M{first_segment[0]},{first_segment[1]}")
-        for segment in curve.segments:
-            if segment.tag == POTRACE_CURVETO:
-                a = segment.c[0]
-                b = segment.c[1]
-                c = segment.c[2]
-                parts.append(f"C{a[0]},{a[1]} {b[0]},{b[1]} {c[0]},{c[1]}")
-            else:
-                a = segment.c[1]
-                b = segment.c[2]
-                parts.append(f"L{a[0]},{a[1]} L{b[0]},{b[1]}")
-        parts.append("z")
-    fp.write(
-        f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
-    )
-    fp.write("</svg>")
-
-
-def convert(image: Image) -> list[_Curve]:
-
-    """ Take image as an input and go through all stages of conversion with it.
-        Returns list of curves creating the resulting vector image"""
-
-    np_image = np.array(image).astype("bool")
-    paths_list = bm_to_paths_list(np.invert(np_image))
-    polygons = [get_best_polygon(path) for path in paths_list]
-
-    curves = list()
-
-    for path, polygon in zip(paths_list, polygons):
-        curve = adjust_vertices(path, polygon)
-        smooth_curve = smooth(curve, 1.0)
-        curves.append(smooth_curve)
-
-    return curves
+from PIL import Image
+from src.Converter import Converter
 
 
 def main() -> None:
@@ -62,15 +10,15 @@ def main() -> None:
     )
 
     parser.add_argument("-i", "--input-path", type=str, required=True)
-    parser.add_argument("-o", "--output-path", type=str, required=True)
+    parser.add_argument("-o", "--output-path", type=str, required=False)
 
     args = parser.parse_args()
 
+    name, ext = os.path.splitext(args.input_path)
+    output_path = args.output_path if args.output_path else name
     image = Image.open(args.input_path)
-    curves = convert(image)
-
-    with open(args.output_path, "+w") as fh:
-        write_to_svg(fh, curves, image.width, image.height)
+    converter = Converter(image)
+    converter.run(output_path)
 
 
 if __name__ == "__main__":
