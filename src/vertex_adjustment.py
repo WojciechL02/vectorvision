@@ -40,6 +40,8 @@ def fit_straight_line(points):
 def calculate_intersection_point(first_parameters, second_parameters):
     a, b = first_parameters
     c, d = second_parameters
+    if a == c:
+        return (0, 0)
     x_intersection = (d-b)/(a-c)
     y_intersection = x_intersection * a + b
     return (x_intersection, y_intersection)

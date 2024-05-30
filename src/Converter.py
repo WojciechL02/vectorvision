@@ -45,34 +45,30 @@ class Converter:
                 print("GRAYSCALE")
                 self.image = ImageOps.grayscale(self.image)
                 a = np.array(self.image)
-                for color in range(0, 256, 32):
+                step = 32
+                for color in range(0, 256, step):
                     color_table = np.where(
-                        np.isin(a, np.arange(color, color + 32)),
+                        np.isin(a, np.arange(0, color)),
                         0,
                         1,
                     )
-                    self.convert_single_color(color_table, fh, color=color)
+                    self.convert_single_color(color_table, fh, color=color, opacity=(1 - color/255) * min(1, step/60))
         e = time.process_time()
         print(f"Finished in {round(e - s, 2)} s\n")
 
-    def convert_single_color(self, color_table, fh, color=0):
-        try:
-            if not np.all(color_table):
-                bm = Bitmap(color_table)
-                paths_list = bm.generate_paths_list()
-                polygons = [get_best_polygon(path) for path in paths_list]
+    def convert_single_color(self, color_table, fh, color=0, opacity=1):
+        if not np.all(color_table):
+            bm = Bitmap(color_table)
+            paths_list = bm.generate_paths_list()
+            polygons = [get_best_polygon(path) for path in paths_list]
+            curves = list()
+            for path, polygon in zip(paths_list, polygons):
+                curve = adjust_vertices(path, polygon)
+                smooth_curve = smooth(curve, 0.5)
+                curves.append(smooth_curve)
+            self._write_path_to_svg(fh, curves, color, opacity)
 
-                curves = list()
-
-                for path, polygon in zip(paths_list, polygons):
-                    curve = adjust_vertices(path, polygon)
-                    smooth_curve = smooth(curve, 0.5)
-                    curves.append(smooth_curve)
-                self._write_path_to_svg(fh, curves, color)
-        except Exception:
-            pass
-
-    def _write_path_to_svg(self, fp: TextIO, curves: list[_Curve], color: int) -> None:
+    def _write_path_to_svg(self, fp: TextIO, curves: list[_Curve], color: int, opacity: float) -> None:
         """Writes path of given color to the SVG file."""
 
         parts = list()
@@ -93,6 +89,7 @@ class Converter:
 
         rgb_color = (color, color, color)
 
+        print(opacity, rgb_color)
         fp.write(
-            f'<path stroke="none" fill="rgb{rgb_color}" fill-rule="evenodd" d="{"".join(parts)}"/>'
+            f'<path stroke="none" opacity="{opacity} " fill-rule="evenodd" d="{"".join(parts)}"/>'
         )
