@@ -1,7 +1,7 @@
 import pytest
 from src.polygons import (
     calc_sums,
-    calc_longest_straight_subpaths,
+    get_longest_straight_subpaths,
     penalty3,
     get_best_polygon,
     Sums,

@@ -173,25 +173,25 @@ def get_pivot_points(path, next_corner, path_len):
     return pivot_points
 
 
-def calc_longest_straight_subpaths(path):
-    
-    
+def get_longest_straight_subpaths(path):
+    """
+    Function takes the path as a list of points, and returns a
+    list of the point indexes forming longest straight subpaths.
+    """
     path_len = len(path)
     longest_straight_subpaths = [None] * path_len
     
     next_corner = get_next_corners(path, path_len)
-    pivot_points = get_pivot_points(path, next_corner, path_len)
+    pivot_point = get_pivot_points(path, next_corner, path_len)
     
-    """
-    clean up: for each i, let lon[i] be the largest k such that for
-    all i' with i<=i'<k, i'<k<=pivk[i']. 
-    """
-
-    j = pivot_points[path_len - 1]
+    # Remove the cyclicly inacurate points so that the longest_straight_subpaths[i]
+    # would be the largest k such that for all i' with i<=i'<k, i'<k<=pivk[i'].
+    
+    j = pivot_point[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
-    for i in range(path_len - 2, -1, -1):
-        if cyclic(i + 1, pivot_points[i], j):
-            j = pivot_points[i]
+    for i in range(path_len - 1, -1, -1):
+        if cyclic(i + 1, pivot_point[i], j):
+            j = pivot_point[i]
         longest_straight_subpaths[i] = j
 
     i = path_len - 1
@@ -202,7 +202,7 @@ def calc_longest_straight_subpaths(path):
     return longest_straight_subpaths
 
 
-def penalty3(path, sums, i: int, j: int) -> float:
+def penalty3(path, sums, i: int, j: int) -> float:#
     """Auxiliary function: calculate the penalty of an edge from i to j in
     the given path. This needs the "lon" and "sum*" data."""
     n = len(path)
@@ -260,7 +260,7 @@ def get_best_polygon(path) -> int:
     seg0 = [None] * (path_length + 1)  # /* seg0[m+1]: forward segment bounds, m<=n */
     seg1 = [None] * (path_length + 1)  # /* seg1[m+1]: backward segment bounds, m<=n */
 
-    longest_straight_subpaths = calc_longest_straight_subpaths(path)
+    longest_straight_subpaths = get_longest_straight_subpaths(path)
     # /* calculate clipped paths */
     for i in range(path_length):
         c = (longest_straight_subpaths[(i - 1) % path_length] - 1 ) % path_length
@@ -321,5 +321,5 @@ def get_best_polygon(path) -> int:
         i = prev[i]
         polygon[j] = i
         j -= 1
-    # print(polygon, m)
+    
     return polygon
