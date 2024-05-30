@@ -13,7 +13,6 @@ from main import write_to_svg
 
 
 
-
 if __name__ == "__main__":
     # ----- load and draw image -----
     image = Image.open("images/head.pbm")
