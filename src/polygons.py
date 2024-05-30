@@ -253,23 +253,10 @@ def penalty3(path, sums, i: int, j: int) -> float:#
     return penalty
 
 
-def get_best_polygon(path) -> int:
-    """
-    find the optimal polygon. Fill in the m and po components. Return 1
-    on failure with errno set, else 0. Non-cyclic version: assumes i=0
-    is in the polygon. Fixme: implement cyclic version. 
-    """
-    path_len = len(path)
-    sums = calc_sums(path)
-    penalties = [None] * (path_len + 1)  # /* pen[n+1]: penalty vector */
-    best_path_vector = [None] * (path_len + 1)  # /* prev[n+1]: best path pointer vector */
-    clip0 = [None] * path_len  # /* clip0[n]: longest segment pointer, non-cyclic */
-    clip1 = [None] * (   path_len + 1)  # /* clip1[n+1]: backwards segment pointer, non-cyclic */
-    seg0 = [None] * (path_len + 1)  # /* seg0[m+1]: forward segment bounds, m<=n */
-    seg1 = [None] * (path_len + 1)  # /* seg1[m+1]: backward segment bounds, m<=n */
-
-    longest_straight_subpaths = get_longest_straight_subpaths(path)
-    # /* calculate clipped paths */
+def clip_path_forward(longest_straight_subpaths, path_len):
+    # Calculate forward clipping path
+    clip0 = [None] * path_len
+    
     for i in range(path_len):
         c = (longest_straight_subpaths[(i - 1) % path_len] - 1 ) % path_len
         if c == i:
@@ -279,30 +266,77 @@ def get_best_polygon(path) -> int:
         else:
             clip0[i] = c
 
+    return clip0
+    
+
+def clip_path_backward(clip0, path_len):
     # /* calculate backwards path clipping, non-cyclic. j <= clip0[i] iff
     # clip1[j] <= i, for i,j=0..n. */
+    
+    clip1 = [None] * (path_len + 1)
+    
     j = 1
     for i in range(path_len):
         while j <= clip0[i]:
             clip1[j] = i
             j += 1
+    
+    return clip1
 
+
+def get_segment_bounds_forward(clip0, path_len):
     # calculate seg0[j] = longest path from 0 with j segments */
+    seg_bounds_F = [None] * (path_len + 1)
     i = 0
     j = 0
     while i < path_len:
-        seg0[j] = i
+        seg_bounds_F[j] = i
         i = clip0[i]
         j += 1
-    seg0[j] = path_len
-    m = j
+    seg_bounds_F[j] = path_len
+    segment_num = j
 
+    return  segment_num, seg_bounds_F
+
+
+def get_segment_bounds_backward(clip1, segment_num, path_len):
     # calculate seg1[j] = longest path to n with m-j segments */
+    seg_bounds_B = [None] * (path_len + 1)
     i = path_len
-    for j in range(m, 0, -1):
-        seg1[j] = i
+    
+    for j in range(segment_num, 0, -1):
+        seg_bounds_B[j] = i
         i = clip1[i]
-    seg1[0] = 0
+    seg_bounds_B[0] = 0
+
+    return seg_bounds_B
+
+
+def get_best_polygon(path) -> int:
+    """
+    Find the optimal polygon for the given path. 
+    This function fills in the m and po components and returns the optimal polygon.
+    Assumes i=0 is in the polygon. This is a non-cyclic version.
+    
+    Parameters:
+    - path: List of points representing the path.
+    
+    Returns:
+    - Optimal polygon as a list of point indices.
+    """
+    
+    path_len = len(path)
+    sums = calc_sums(path)
+    longest_straight_subpaths = get_longest_straight_subpaths(path)
+    
+    penalties = [None] * (path_len + 1)  
+    best_path_vector = [None] * (path_len + 1) 
+    
+    clip0 = clip_path_forward(longest_straight_subpaths, path_len)  # longest segment pointer, non-cyclic 
+    clip1 = clip_path_backward(clip0, path_len) # backwards segment pointer, non-cyclic
+    
+    segments_num, seg_bounds_F = get_segment_bounds_forward(clip0, path_len) # forward segment bounds, m<=n
+    seg_bounds_B = get_segment_bounds_backward(clip1, segments_num, path_len)  # backward segment bounds, m<=n
 
     """now find the shortest path with m segments, based on penalty3 */
     /* note: the outer 2 loops jointly have at most n iterations, thus
@@ -310,24 +344,28 @@ def get_best_polygon(path) -> int:
          close to linear since the inner loop tends to be short. */
          """
     penalties[0] = 0
-    for j in range(1, m + 1):
-        for i in range(seg1[j], seg0[j] + 1):
+    for j in range(1, segments_num + 1):
+        for i in range(seg_bounds_B[j], seg_bounds_F[j] + 1):
             best = -1
-            for k in range(seg0[j - 1], clip1[i] - 1, -1):
+            for k in range(seg_bounds_F[j - 1], clip1[i] - 1, -1):
                 thispen = penalty3(path, sums, k, i) + penalties[k]
                 if best < 0 or thispen < best:
                     best_path_vector[i] = k
                     best = thispen
             penalties[i] = best
 
-    polygon = [None] * m
+    polygon = [None] * segments_num
 
     # /* read off shortest path */
     i = path_len
-    j = m - 1
+    j = segments_num - 1
     while i > 0:
         i = best_path_vector[i]
         polygon[j] = i
         j -= 1
+    
+    print(f'vector: {best_path_vector}')
+    print(f'polygon: {polygon}')
+    
     
     return polygon
