@@ -124,6 +124,14 @@ class Bitmap:
                 y1 = y
 
     def _get_color_in_bounds(self, x_, y_):
+        """Get the color at a given point.
+
+        Args:
+            point: point in the bitmap
+
+        Returns:
+            Value of the color at the specified point. Returns 0 if point is out of range. -1 when white and 1 otherwise.
+        """
         x_size, y_size = self.bitmap.shape
         if y_ in range(x_size) and x_ in range(y_size):
             return 1 if self.bitmap[y_][x_] else -1
