@@ -2,31 +2,53 @@ from src.vertex_adjustment import _Curve
 from src.utils import interval
 import numpy as np
 import math
+
 POTRACE_CURVETO = 1
 POTRACE_CORNER = 2
 COS179 = math.cos(math.radians(179))
 
 
-def calculate_distance(p, q) -> float:
-    """calculate distance between two points"""
+def calculate_distance(p: tuple[float, float], q: tuple[float, float]) -> float:
+    """Calculates Euclidean distance between two points in 2D space.
+
+    Args:
+            p: first point
+            q: second point
+
+    Returns:
+        Value of the Euclidean distance (float).
+    """
     return math.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
 
 
 def dpara(p0, p1, p2) -> float:
-    """
-    /* return (p1-p0)x(p2-p0), the area of the parallelogram */
+    """Calculates the area of the parallelogram in the 2D space.
+    The parallelogram is defined by three points.
+    This function is also used to determine curve convexity.
+
+    Args:
+        p0: first point
+        p1: second point
+        p2: third point
+
+    Returns:
+        Area = (p1 - p0) x (p2 - p0) Can be also negative.
     """
     x1 = p1[0] - p0[0]
     y1 = p1[1] - p0[1]
     x2 = p2[0] - p0[0]
     y2 = p2[1] - p0[1]
-    if x1 * y2 - x2 * y1 != np.cross([p1[0]-p0[0], p1[1]-p0[1]], [p2[0]-p0[0], p2[1]-p0[1]]):
-        print(x1 * y2 - x2 * y1, np.cross([p1[0]-p0[0], p1[1]-p1[1]], [p2[0]-p0[0], p2[1]-p0[1]]))
-    return x1 * y2 - x2 * y1
+    return np.cross([x1, y1], [x2, y2]).item()
 
 
 def cprod(p0, p1, p2, p3) -> float:
-    """calculate (p1-p0)x(p3-p2)"""
+    """Calculates a cross product of differences between points: (p1-p0)x(p3-p2).
+
+    Args:
+        p0, p1, p2, p3: points
+    Returns:
+        Value of cross product (float).
+    """
     x1 = p1[0] - p0[0]
     y1 = p1[1] - p0[1]
     x2 = p3[0] - p2[0]
@@ -34,45 +56,64 @@ def cprod(p0, p1, p2, p3) -> float:
     return x1 * y2 - x2 * y1
 
 
-def iprod1(p0, p1, p2, p3) -> float:
-    """calculate (p1-p0)*(p3-p2)"""
+def iprod(p0, p1, p2, p3=None) -> float:
+    """Calculates the product: (p1-p0) * (p3-p2) if there are four points given or
+    (p1-p0) * (p2-p0) otherwise.
+
+    Args:
+        p0, p1, p2, p3=None: points
+
+    Returns:
+        Value of the product (float).
+    """
     x1 = p1[0] - p0[0]
     y1 = p1[1] - p0[1]
-    x2 = p3[0] - p2[0]
-    y2 = p3[1] - p2[1]
+    x2 = p3[0] - p2[0] if p3 else p2[0] - p0[0]
+    y2 = p3[1] - p2[1] if p3 else p2[1] - p0[1]
     return x1 * x2 + y1 * y2
 
 
 def bezier(t: float, p0, p1, p2, p3):
-    """calculate point of a bezier curve"""
+    """Calculates a point of a bezier curve specified by control points and t param.
+
+    Paper:
+    "We restrict ourselves to the case where the straight lines through p0p1
+    and through p3p2 intersect at a point o (i.e., they are not parallel)."
+
+    Args:
+        p0, p1, p2, p3: Bezier curve control points
+        t: Curve parameter
+
+    Returns:
+        Point
+    """
     s = 1 - t
-
-    """
-    Note: a good optimizing compiler (such as gcc-3) reduces the
-    following to 16 multiplications, using common subexpression
-    elimination.
-    """
-    return (
-        s * s * s * p0[0]
-        + 3 * (s * s * t) * p1[0]
-        + 3 * (t * t * s) * p2[0]
-        + t * t * t * p3[0],
-        s * s * s * p0[1]
-        + 3 * (s * s * t) * p1[1]
-        + 3 * (t * t * s) * p2[1]
-        + t * t * t * p3[1],
+    x = (
+        pow(s, 3) * p0[0]
+        + 3 * pow(s, 2) * t * p1[0]
+        + 3 * pow(t, 2) * s * p2[0]
+        + pow(t, 3) * p3[0]
     )
+    y = (
+        pow(s, 3) * p0[1]
+        + 3 * pow(s, 2) * t * p1[1]
+        + 3 * pow(t, 2) * s * p2[1]
+        + pow(t, 3) * p3[1]
+    )
+    return x, y
 
 
-def tangent(
-    p0, p1, p2, p3, q0, q1
-) -> float:
-    """calculate the point t in [0..1] on the (convex) bezier curve
-    (p0,p1,p2,p3) which is tangent to q1-q0. Return -1.0 if there is no
-    solution in [0..1]."""
+def tangent(p0, p1, p2, p3, q0, q1) -> float:
+    """Calculates the point t in [0..1] on the (convex) bezier curve
+    (p0,p1,p2,p3) which is tangent to q1-q0. Return -1 if there is no
+    solution in [0..1].
 
-    # (1-t)^2 A + 2(1-t)t B + t^2 C = 0
-    # a t^2 + b t + c = 0
+    Args:
+        p0, p1, p2, p3: control points of Bezier curve
+        q0, q1:
+    Returns:
+          Value of t if there is solution in [0..1], otherwise -1.
+    """
 
     A = cprod(p0, p1, q0, q1)
     B = cprod(p1, p2, q0, q1)
@@ -81,32 +122,17 @@ def tangent(
     a = A - 2 * B + C
     b = -2 * A + 2 * B
     c = A
+    delta = b * b - 4 * a * c
 
-    d = b * b - 4 * a * c
+    if a == 0 or delta < 0:
+        return -1
 
-    if a == 0 or d < 0:
-        return -1.0
-
-    s = math.sqrt(d)
-
-    r1 = (-b + s) / (2 * a)
-    r2 = (-b - s) / (2 * a)
-
-    if 0 <= r1 <= 1:
-        return r1
-    elif 0 <= r2 <= 1:
-        return r2
-    else:
-        return -1.0
-    
-
-def iprod(p0, p1, p2) -> float:
-    """calculate (p1-p0)*(p2-p0)"""
-    x1 = p1[0] - p0[0]
-    y1 = p1[1] - p0[1]
-    x2 = p2[0] - p0[0]
-    y2 = p2[1] - p0[1]
-    return x1 * x2 + y1 * y2
+    root1, root2 = np.roots([a, b, c])
+    if 0 <= root1 <= 1:
+        return root1
+    elif 0 <= root2 <= 1:
+        return root2
+    return -1
 
 
 class opti_t:
@@ -167,7 +193,7 @@ def calculate_optimization_penalty(
         ):
             return 1
         if (
-            iprod1(
+            iprod(
                 curve[i].vertex,
                 curve[i1].vertex,
                 curve[k1].vertex,
@@ -246,7 +272,7 @@ def calculate_optimization_penalty(
             or iprod(curve[k1].vertex, curve[k].vertex, pt) < 0
         ):
             return 1
-        res.pen += (d1 ** 2)
+        res.pen += d1**2
         k = k1
 
     # /* check corners */
@@ -269,7 +295,7 @@ def calculate_optimization_penalty(
         if d1 < d2 - opttolerance:
             return 1
         if d1 < d2:
-            res.pen += ((d1 - d2) ** 2)
+            res.pen += (d1 - d2) ** 2
         k = k1
     return 0
 
@@ -277,19 +303,21 @@ def calculate_optimization_penalty(
 def precalculate_convexity(n_of_segments, curve):
     convexity = list()
 
-    # pre-calculate convexity: +1 = right turn, -1 = left turn, 0 = corner 
+    # pre-calculate convexity: +1 = right turn, -1 = left turn, 0 = corner
     for i in range(n_of_segments):
         if curve[i].tag == POTRACE_CURVETO:
-            convexity.append(np.sign(
-                dpara(
-                    curve[(i - 1) % n_of_segments].vertex,
-                    curve[i].vertex,
-                    curve[(i + 1) % n_of_segments].vertex,
+            convexity.append(
+                np.sign(
+                    dpara(
+                        curve[(i - 1) % n_of_segments].vertex,
+                        curve[i].vertex,
+                        curve[(i + 1) % n_of_segments].vertex,
+                    )
                 )
-            ))
+            )
         else:
             convexity.append(0)
-    
+
     return convexity
 
 
@@ -345,7 +373,9 @@ def optimize_curve(curve: _Curve, opttolerance: float) -> int:
         for i in range(j - 2, -1, -1):
             if o is None:
                 o = opti_t()
-            if calculate_optimization_penalty(curve, i, j % n_of_segments, o, opttolerance, convc, areac):
+            if calculate_optimization_penalty(
+                curve, i, j % n_of_segments, o, opttolerance, convc, areac
+            ):
                 break
             if length[j] > length[i] + 1 or (
                 length[j] == length[i] + 1 and pen[j] > pen[i] + o.pen
@@ -387,8 +417,8 @@ def optimize_curve(curve: _Curve, opttolerance: float) -> int:
         j = pt[j]
 
     # /* calculate beta parameters */
-    for i in range(om):
-        i1 = (i + 1) % om
-        new_curve[i].beta = s[i] / (s[i] + t[i1])
-    new_curve.alphacurve = True
+    # for i in range(om):
+    #     i1 = (i + 1) % om
+    #     new_curve[i].beta = s[i] / (s[i] + t[i1])
+    # new_curve.alphacurve = True
     return new_curve

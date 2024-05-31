@@ -5,6 +5,7 @@ from src.path_decomposition import Bitmap
 from src.smoothing import smooth, POTRACE_CURVETO
 from src.polygons import get_best_polygon
 from src.vertex_adjustment import adjust_vertices, _Curve
+from src.curve_optimization import optimize_curve
 from contextlib import contextmanager
 from typing import TextIO
 
@@ -51,7 +52,12 @@ class Converter:
                         0,
                         1,
                     )
-                    self.convert_single_color(color_table, fh, color=color, opacity=(1 - color/255) * min(1, step/60))
+                    self.convert_single_color(
+                        color_table,
+                        fh,
+                        color=color,
+                        opacity=(1 - color / 255) * min(1, step / 60),
+                    )
         e = time.process_time()
         print(f"Finished in {round(e - s, 2)} s\n")
 
@@ -64,10 +70,13 @@ class Converter:
             for path, polygon in zip(paths_list, polygons):
                 curve = adjust_vertices(path, polygon)
                 smooth_curve = smooth(curve, 10000)
-                curves.append(smooth_curve)
+                optimal_curve = optimize_curve(smooth_curve, 0.2)
+                curves.append(optimal_curve)
             self._write_path_to_svg(fh, curves, color, opacity)
 
-    def _write_path_to_svg(self, fp: TextIO, curves: list[_Curve], color: int, opacity: float) -> None:
+    def _write_path_to_svg(
+        self, fp: TextIO, curves: list[_Curve], color: int, opacity: float
+    ) -> None:
         """Writes path of given color to the SVG file."""
 
         parts = list()
