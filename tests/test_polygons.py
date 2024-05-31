@@ -1,5 +1,5 @@
 import pytest
-from src.polygons import (
+from vectorvision.polygons import (
     calc_sums,
     calc_longest_straight_subpaths,
     penalty3,

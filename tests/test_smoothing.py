@@ -1,26 +1,32 @@
-from src.smoothing import interval, calculate_alpha, smooth
-from src.vertex_adjustment import _Curve
+from vectorvision.smoothing import interval, calculate_alpha, smooth
+from vectorvision.vertex_adjustment import _Curve
 import pytest
 
 
 def test_interval1():
-    assert interval(0.5, (-12, 3), (-3, -2)) == (-7.5,  0.5)
+    assert interval(0.5, (-12, 3), (-3, -2)) == (-7.5, 0.5)
 
 
 def test_interval2():
-    assert interval(0.25, (-12, 3), (-3, -2)) == (-9.75,  1.75)
+    assert interval(0.25, (-12, 3), (-3, -2)) == (-9.75, 1.75)
 
 
 def test_calculate_alpha1():
-    assert calculate_alpha((-9.5, 2), (-6, 3), (-3.5, 0.5)) == pytest.approx(0.44444, abs=1e-5)
+    assert calculate_alpha((-9.5, 2), (-6, 3), (-3.5, 0.5)) == pytest.approx(
+        0.44444, abs=1e-5
+    )
 
 
 def test_calculate_alpha2():
-    assert calculate_alpha((-7.94, -5.71), (-9, 4), (3.14, -3.35)) == pytest.approx(1.17055, abs=1e-5)
+    assert calculate_alpha((-7.94, -5.71), (-9, 4), (3.14, -3.35)) == pytest.approx(
+        1.17055, abs=1e-5
+    )
 
 
 def test_calculate_alpha3():
-    assert calculate_alpha((-6, 1), (-6, 5), (-6, 1)) == pytest.approx(1.33333, abs=1e-5)
+    assert calculate_alpha((-6, 1), (-6, 5), (-6, 1)) == pytest.approx(
+        1.33333, abs=1e-5
+    )
 
 
 def test_calculate_alpha4():

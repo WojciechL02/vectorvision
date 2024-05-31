@@ -1,5 +1,8 @@
-from src.vertex_adjustment import calculate_intersection_point, find_closest_point_in_boundary
-from src.vertex_adjustment import fit_least_squares, adjust_vertices
+from vectorvision.vertex_adjustment import (
+    calculate_intersection_point,
+    find_closest_point_in_boundary,
+)
+from vectorvision.vertex_adjustment import fit_least_squares, adjust_vertices
 import pytest
 
 
@@ -53,8 +56,21 @@ def test_find_closest_point_in_boundary_point_in_boundary3():
 
 
 def test_adjust_vertices():
-    curves = adjust_vertices([(0, 0), (5, 6), (8, 13), (10, 15), (10, 8), (9, 0), (9, -3), (8, -7), (6, -4), (3, -2)],
-                             [0, 3, 7])
+    curves = adjust_vertices(
+        [
+            (0, 0),
+            (5, 6),
+            (8, 13),
+            (10, 15),
+            (10, 8),
+            (9, 0),
+            (9, -3),
+            (8, -7),
+            (6, -4),
+            (3, -2),
+        ],
+        [0, 3, 7],
+    )
     assert len(curves) == 3
     assert curves[0].vertex[0] == pytest.approx(0.322627, abs=1e-6)
     assert curves[0].vertex[1] == pytest.approx(0.036169, abs=1e-6)

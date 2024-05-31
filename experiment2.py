@@ -1,14 +1,12 @@
-from src.decompose import bm_to_paths_list
-from src.polygons import get_best_polygon, calc_longest_straight_subpaths
-from src.vertex_adjustment import adjust_vertices
-from src.smoothing import smooth, POTRACE_CORNER, POTRACE_CURVETO
+from vectorvision.decompose import bm_to_paths_list
+from vectorvision.polygons import get_best_polygon, calc_longest_straight_subpaths
+from vectorvision.vertex_adjustment import adjust_vertices
+from vectorvision.smoothing import smooth, POTRACE_CORNER, POTRACE_CURVETO
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.path import Path as PlotPath
 import matplotlib.patches as patches
-
-
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from PIL import Image
-from src.path_decomposition import Bitmap
+from vectorvision.path_decomposition import Bitmap
 
 # ============= Bitmap constructor ===============
 
