@@ -296,9 +296,7 @@ def calculate_optimization_penalty(
 
     n_of_segments = curve.n
 
-
-    # /* check convexity, corner-freeness, and maximum bend < 179 degrees */
-
+    # check convexity, corner-freeness, and maximum bend < 179 degrees
     current_segment = start_segment_idx
     start_segment_plus_one_idx = (start_segment_idx + 1) % n_of_segments
 
@@ -414,7 +412,6 @@ def optimize_curve(curve: _Curve, opttolerance: float) -> int:
     length = [0] * (n_of_segments + 1)  # /* len[m+1] */
     opt = [None] * (n_of_segments + 1)  # /* opt[m+1] */
 
-
     pt[0] = -1
     pen[0] = 0
     length[0] = 0
@@ -432,7 +429,8 @@ def optimize_curve(curve: _Curve, opttolerance: float) -> int:
                 break
 
             if length[curr_last_segment] > length[curr_start_segment] + 1 or (
-                length[curr_last_segment] == length[curr_start_segment] + 1 and pen[curr_last_segment] > pen[curr_start_segment] + opti_curve.pen
+                length[curr_last_segment] == length[curr_start_segment] + 1
+                and pen[curr_last_segment] > pen[curr_start_segment] + opti_curve.pen
             ):
                 opt[curr_last_segment] = opti_curve
                 pt[curr_last_segment] = curr_start_segment
@@ -458,7 +456,9 @@ def optimize_curve(curve: _Curve, opttolerance: float) -> int:
             new_curve[curr_start_segment].c[1] = opt[curr_last_segment].c[1]
             new_curve[curr_start_segment].c[2] = curve[curr_last_segment % n_of_segments].c[2]
             new_curve[curr_start_segment].vertex = interval(
-                opt[curr_last_segment].s, curve[curr_last_segment % n_of_segments].c[2], curve[curr_last_segment % n_of_segments].vertex
+                opt[curr_last_segment].s,
+                curve[curr_last_segment % n_of_segments].c[2],
+                curve[curr_last_segment % n_of_segments].vertex
             )
             new_curve[curr_start_segment].alpha = opt[curr_last_segment].alpha
         curr_last_segment = pt[curr_last_segment]
