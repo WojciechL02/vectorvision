@@ -7,11 +7,36 @@ POTRACE_CURVETO = 1
 POTRACE_CORNER = 2
 
 
-def interval(t: float, a, b):
-    return (a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]))
+def interval(proportion: float, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+
+    """
+        Calculate the point which is splitting section into two parts in given proportion
+
+        Args:
+            proportion: in which proportion segment should be splitted, ratio ax/ab
+            a: first point
+            b: second point
+
+        Returns:
+            point splitting segment ab in given proportion
+    """
+
+    return (a[0] + proportion * (b[0] - a[0]), a[1] + proportion * (b[1] - a[1]))
 
 
-def calculate_alpha(point0, point1, point2):
+def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], point2: tuple[float, float]) -> float:
+
+    """Calculate the parameter alpha of Bezier curve necessary for corner detection and smoothing
+
+        Args:
+            point0: starting point
+            point1: vertex point
+            point2: end point
+
+        Returns:
+            value of alpha parameter
+    """
+
     point0_np = np.array(point0)
     point1_np = np.array(point1)
     point2_np = np.array(point2)
@@ -33,9 +58,21 @@ def calculate_alpha(point0, point1, point2):
 
 
 def smooth(curve: _Curve, alphamax: float) -> None:
+
+    """
+        Calculate the point which is splitting section into two parts in given proportion
+
+        Args:
+            proportion: in which proportion segment should be splitted, ratio ax/ab
+            a: first point
+            b: second point
+
+        Returns:
+            point splitting segment ab in given proportion
+    """
+
     n_of_segments = curve.n
 
-    # /* examine each vertex and find its best fit */
     for i in range(n_of_segments):
         j = (i + 1) % n_of_segments
         k = (i + 2) % n_of_segments
@@ -43,22 +80,22 @@ def smooth(curve: _Curve, alphamax: float) -> None:
         alpha = calculate_alpha(curve[i].vertex, curve[j].vertex, curve[k].vertex)
         p4 = interval(1 / 2.0, curve[j].vertex, curve[k].vertex)
 
-        if alpha >= alphamax:  # /* pointed corner */
+        if alpha >= alphamax:   # corner found
 
             curve[j].tag = POTRACE_CORNER
             curve[j].c[1] = curve[j].vertex
             curve[j].c[2] = p4
+
         else:
             if alpha < 0.55:
                 alpha = 0.55
             elif alpha > 1:
                 alpha = 1
-            p2 = interval(alpha, curve[i].vertex, curve[j].vertex)
-            p3 = interval(alpha, curve[k].vertex, curve[j].vertex)
+            p2 = interval(0.5+0.5*alpha, curve[i].vertex, curve[j].vertex)
+            p3 = interval(0.5+0.5*alpha, curve[k].vertex, curve[j].vertex)
             curve[j].tag = POTRACE_CURVETO
             curve[j].c[0] = p2
             curve[j].c[1] = p3
             curve[j].c[2] = p4
-        # curve[j].alpha = alpha  # /* store the "cropped" value of alpha */
 
     return curve
