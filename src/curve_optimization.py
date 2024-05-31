@@ -1,4 +1,5 @@
 from src.vertex_adjustment import _Curve
+from src.utils import interval
 import numpy as np
 import math
 POTRACE_CURVETO = 1
@@ -6,20 +7,7 @@ POTRACE_CORNER = 2
 COS179 = math.cos(math.radians(179))
 
 
-def sign(x):
-    if x > 0:
-        return 1
-    elif x < 0:
-        return -1
-    else:
-        return 0
-
-
-def interval(t: float, a, b):
-    return (a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]))
-
-
-def ddist(p, q) -> float:
+def calculate_distance(p, q) -> float:
     """calculate distance between two points"""
     return math.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
 
@@ -130,7 +118,7 @@ class opti_t:
         self.alpha = 0  # /* curve parameter */
 
 
-def opti_penalty(
+def calculate_optimization_penalty(
     curve: _Curve,
     i: int,
     j: int,
@@ -159,7 +147,7 @@ def opti_penalty(
     conv = convc[k1]
     if conv == 0:
         return 1
-    d = ddist(curve[i].vertex, curve[i1].vertex)
+    d = calculate_distance(curve[i].vertex, curve[i1].vertex)
     k = k1
     while k != j:
         k1 = (k + 1) % n_of_segments
@@ -167,7 +155,7 @@ def opti_penalty(
         if convc[k1] != conv:
             return 1
         if (
-            sign(
+            np.sign(
                 cprod(
                     curve[i].vertex,
                     curve[i1].vertex,
@@ -185,7 +173,7 @@ def opti_penalty(
                 curve[k1].vertex,
                 curve[k2].vertex,
             )
-            < d * ddist(curve[k1].vertex, curve[k2].vertex) * COS179
+            < d * calculate_distance(curve[k1].vertex, curve[k2].vertex) * COS179
         ):
             return 1
         k = k1
@@ -247,7 +235,7 @@ def opti_penalty(
         if t < -0.5:
             return 1
         pt = bezier(t, p0, p1, p2, p3)
-        d = ddist(curve[k].vertex, curve[k1].vertex)
+        d = calculate_distance(curve[k].vertex, curve[k1].vertex)
         if d == 0.0:  # /* this should never happen */
             return 1
         d1 = dpara(curve[k].vertex, curve[k1].vertex, pt) / d
@@ -269,7 +257,7 @@ def opti_penalty(
         if t < -0.5:
             return 1
         pt = bezier(t, p0, p1, p2, p3)
-        d = ddist(curve[k].c[2], curve[k1].c[2])
+        d = calculate_distance(curve[k].c[2], curve[k1].c[2])
         if d == 0.0:  # /* this should never happen */
             return 1
         d1 = dpara(curve[k].c[2], curve[k1].c[2], pt) / d
@@ -286,24 +274,13 @@ def opti_penalty(
     return 0
 
 
-def _opticurve(curve: _Curve, opttolerance: float) -> int:
-    """
-    optimize the path p, replacing sequences of Bezier segments by a
-    single segment when possible. Return 0 on success, 1 with errno set
-    on failure.
-    """
-    n_of_segments = curve.n
-    pt = [0] * (n_of_segments + 1)  # /* pt[m+1] */
-    pen = [0.0] * (n_of_segments + 1)  # /* pen[m+1] */
-    length = [0] * (n_of_segments + 1)  # /* len[m+1] */
-    opt = [None] * (n_of_segments + 1)  # /* opt[m+1] */
+def precalculate_convexity(n_of_segments, curve):
+    convexity = list()
 
-    convc = list()
-
-    # /* pre-calculate convexity: +1 = right turn, -1 = left turn, 0 = corner */
+    # pre-calculate convexity: +1 = right turn, -1 = left turn, 0 = corner 
     for i in range(n_of_segments):
         if curve[i].tag == POTRACE_CURVETO:
-            convc.append(sign(
+            convexity.append(np.sign(
                 dpara(
                     curve[(i - 1) % n_of_segments].vertex,
                     curve[i].vertex,
@@ -311,9 +288,12 @@ def _opticurve(curve: _Curve, opttolerance: float) -> int:
                 )
             ))
         else:
-            convc.append(0)
+            convexity.append(0)
+    
+    return convexity
 
-    # /* pre-calculate areas */
+
+def precalculate_areas(n_of_segments, curve):
     area = 0.0
     areac = [0.0]
     p0 = curve[0].vertex
@@ -330,7 +310,25 @@ def _opticurve(curve: _Curve, opttolerance: float) -> int:
             )
             area += dpara(p0, curve[i].c[2], curve[i1].c[2]) / 2
         areac.append(area)
-        
+
+    return areac
+
+
+def optimize_curve(curve: _Curve, opttolerance: float) -> int:
+    """
+    optimize the path p, replacing sequences of Bezier segments by a
+    single segment when possible. Return 0 on success, 1 with errno set
+    on failure.
+    """
+    n_of_segments = curve.n
+    pt = [0] * (n_of_segments + 1)  # /* pt[m+1] */
+    pen = [0.0] * (n_of_segments + 1)  # /* pen[m+1] */
+    length = [0] * (n_of_segments + 1)  # /* len[m+1] */
+    opt = [None] * (n_of_segments + 1)  # /* opt[m+1] */
+
+    convc = precalculate_convexity(n_of_segments, curve)
+    areac = precalculate_areas(n_of_segments, curve)
+
     pt[0] = -1
     pen[0] = 0
     length[0] = 0
@@ -347,7 +345,7 @@ def _opticurve(curve: _Curve, opttolerance: float) -> int:
         for i in range(j - 2, -1, -1):
             if o is None:
                 o = opti_t()
-            if opti_penalty(curve, i, j % n_of_segments, o, opttolerance, convc, areac):
+            if calculate_optimization_penalty(curve, i, j % n_of_segments, o, opttolerance, convc, areac):
                 break
             if length[j] > length[i] + 1 or (
                 length[j] == length[i] + 1 and pen[j] > pen[i] + o.pen

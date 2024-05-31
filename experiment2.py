@@ -1,7 +1,7 @@
 from src.path_decomposition import Bitmap
 from src.polygons import get_best_polygon, calc_longest_straight_subpaths
 from src.vertex_adjustment import adjust_vertices
-from src.curve_optimization import _opticurve
+from src.curve_optimization import optimize_curve
 from src.smoothing import smooth, POTRACE_CORNER, POTRACE_CURVETO
 from PIL import Image
 import numpy as np
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     opti_curves = list()
     fig, ax = plt.subplots()
     for curve in curves:
-        opti_curve = _opticurve(curve, 0.5)
+        opti_curve = optimize_curve(curve, 0.5)
         opti_curves.append(opti_curve)
         verts = [(opti_curve.segments[0].c[0])]
         codes = [PlotPath.MOVETO]
