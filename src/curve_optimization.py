@@ -25,7 +25,7 @@ def calculate_distance(p: tuple[float, float], q: tuple[float, float]) -> float:
     return math.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
 
 
-def dpara(p0, p1, p2) -> float:
+def dpara(p0: tuple[float, float], p1, p2) -> float:
     """Calculates the area of the parallelogram in the 2D space.
     The parallelogram is defined by three points.
     This function is also used to determine curve convexity.
@@ -77,7 +77,7 @@ def iprod(p0, p1, p2, p3=None) -> float:
     return x1 * x2 + y1 * y2
 
 
-def bezier(t: float, p0, p1, p2, p3):
+def bezier(t: float, p0, p1, p2, p3) -> tuple[float, float]:
     """Calculates a point of a bezier curve specified by control points and t param.
 
     Paper:
@@ -139,7 +139,24 @@ def tangent(p0, p1, p2, p3, q0, q1) -> float:
     return -1
 
 
-def calculate_penalty_edges_tangency(start_index, end_index, curve, opttolerance, p0, p1, p2, p3):
+def calculate_penalty_edges_tangency(curve: _Curve,
+                                     start_index: int,
+                                     end_index: int,
+                                     opttolerance: float, p0, p1, p2, p3) -> float:
+
+    """Calculates part of penalty connected with tangency with edges
+
+    Args:
+        curve: curve for which subset we want to calculate penalty
+        start_index: index of first segment of curve part for which we want to calculate penalty
+        end_index: index of last segment of curve part for which we want to calculate penalty
+        opttolerance: maximum deviation for which we will still perform replacing
+        p0, p1, p2, p3: control points of new potential curve
+
+
+    Returns:
+        Value of the penalty
+    """
 
     penalty = 0
 
@@ -169,6 +186,19 @@ def calculate_penalty_edges_tangency(start_index, end_index, curve, opttolerance
 
 def calculate_penalty_corners(curve, start_index, end_index, opttolerance, p0, p1, p2, p3):
 
+    """Calculates part of penalty connected with tangency with corners
+
+    Args:
+        curve: curve for which subset we want to calculate penalty
+        start_index: index of first segment of curve part for which we want to calculate penalty
+        end_index: index of last segment of curve part for which we want to calculate penalty
+        opttolerance: maximum deviation for which we will still perform replacing
+        p0, p1, p2, p3: control points of new potential curve
+
+    Returns:
+        Value of the penalty
+    """
+
     penalty = 0
 
     current_index = start_index
@@ -196,9 +226,21 @@ def calculate_penalty_corners(curve, start_index, end_index, opttolerance, p0, p
     return penalty
 
 
-def check_if_smaller_than_179(curve, start_segment_idx, next_segment):
+def check_if_smaller_than_179(curve, start_segment_idx, end_segment_idx):
 
-    next_next_segment = (next_segment + 1) % curve.n
+    """Checks if condition of not exceeding 179 degrees in one curve is satisfied for given segments
+
+    Args:
+        curve: curve for which subset we want to perform check
+        start_segment_idx: index of first segment of curve part for which we want to perform check
+        end_segment_idx: index of last segment of curve part for which we want to perform check
+
+
+    Returns:
+        True if condition is satisfied, False otherwise
+    """
+
+    end_segment_plus_one_idx = (end_segment_idx + 1) % curve.n
     start_segment_plus_one_idx = (start_segment_idx + 1) % curve.n
 
     d = calculate_distance(curve[start_segment_idx].vertex, curve[start_segment_plus_one_idx].vertex)
@@ -206,29 +248,43 @@ def check_if_smaller_than_179(curve, start_segment_idx, next_segment):
             iprod(
                 curve[start_segment_idx].vertex,
                 curve[start_segment_plus_one_idx].vertex,
-                curve[next_segment].vertex,
-                curve[next_next_segment].vertex,
+                curve[end_segment_idx].vertex,
+                curve[end_segment_plus_one_idx].vertex,
             )
-            < d * calculate_distance(curve[next_segment].vertex, curve[next_next_segment].vertex) * COS179
+            < d * calculate_distance(curve[end_segment_idx].vertex, curve[end_segment_plus_one_idx].vertex) * COS179
     ):
         return False
     return True
 
 
-def check_if_same_convexity(convexity, convexity_precalculated, curve, start_segment_idx, next_segment):
+def check_if_same_convexity(curve, convexity, convexity_precalculated, start_segment_idx, end_segment_idx):
 
-    next_next_segment = (next_segment + 1) % curve.n
+    """Checks if condition of the same convexity is satisfied for given segments
+
+    Args:
+        curve: curve for which subset we want to perform check
+        convexity: expected convexity of segment
+        convexity_precalculated: precalculated convexity to speed up calculations
+        start_segment_idx: index of first segment of curve part for which we want to perform check
+        end_segment_idx: index of last segment of curve part for which we want to perform check
+
+
+    Returns:
+        True if condition is satisfied, False otherwise
+    """
+
+    end_segment_idx_plus_one = (end_segment_idx + 1) % curve.n
     start_segment_plus_one_idx = (start_segment_idx + 1) % curve.n
 
-    if convexity_precalculated[next_segment] != convexity:
+    if convexity_precalculated[end_segment_idx] != convexity:
         return False
     if (
             np.sign(
                 cprod(
                     curve[start_segment_idx].vertex,
                     curve[start_segment_plus_one_idx].vertex,
-                    curve[next_segment].vertex,
-                    curve[next_next_segment].vertex,
+                    curve[end_segment_idx].vertex,
+                    curve[end_segment_idx_plus_one].vertex,
                 )
             )
             != convexity
@@ -238,6 +294,17 @@ def check_if_same_convexity(convexity, convexity_precalculated, curve, start_seg
 
 
 def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
+
+    """Checks if all necessary conditions to allow merging curves into one are satisfied
+
+    Args:
+        curve: curve for which subset we want to perform checks
+        start_segment_idx: index of first segment of curve part for which we want to perform checks
+        end_segment_idx: index of last segment of curve part for which we want to perform checks
+
+    Returns:
+        True if all conditions is satisfied, False otherwise
+    """
 
     if start_segment_idx == end_segment_idx:  # sanity - a full loop can never be an opticurve
         return False
@@ -254,7 +321,7 @@ def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
     current_segment = next_segment
     while current_segment != end_segment_idx:
         next_segment = (current_segment + 1) % curve.n
-        if not check_if_same_convexity(convexity, convexity_precalculated, curve, start_segment_idx, next_segment):
+        if not check_if_same_convexity(curve, convexity, convexity_precalculated, start_segment_idx, next_segment):
             return False
         if not check_if_smaller_than_179(curve, start_segment_idx, next_segment):
             return False
@@ -266,6 +333,17 @@ def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
 
 def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
 
+    """Calculate are under given segments of curve
+    Args:
+        curve: curve for which subset we want to calculate area
+        start_segment_idx: index of first segment of curve part for which we want to calculate area
+        end_segment_idx: index of last segment of curve part for which we want to calculate area
+
+
+    Returns:
+        Area under given segments of curve
+    """
+
     precalculated_areas = precalculate_areas(curve)
 
     area = precalculated_areas[end_segment_idx] - precalculated_areas[start_segment_idx]
@@ -276,6 +354,17 @@ def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
 
 
 def calculate_alpha(area, p0_o_p3_triangle_area):
+
+    """Calculate alpha parameter for curve based on ratio of area under curve and triangle
+      with two sides tangent to the curve
+    Args:
+        area: area under curve
+        p0_o_p3_triangle_area: area of triangle
+
+    Returns:
+        Alpha parameter of curve
+    """
+
     R = area / p0_o_p3_triangle_area    # relative area
     alpha = 2 - math.sqrt(4 - R / 0.3)  # overall alpha for p0-o-p3 curve
     return alpha
@@ -287,11 +376,18 @@ def calculate_optimization_penalty(
     end_segment_idx: int,
     opttolerance: float,
 ) -> int:
+    
+    """Calculate penalty of optimized curve part between two segments 
 
-    """
-    /* calculate best fit from i+.5 to j+.5.    Assume i<j (cyclically).
-     Return 0 and set badness and parameters (alpha, beta), if
-     possible. Return 1 if impossible. */
+    Args:
+        curve: curve for which subset we want to calculate area
+        start_segment_idx: index of first segment of curve part for which we want to calculate penalty
+        end_segment_idx: index of last segment of curve part for which we want to calculate penalty
+        opttolerance: maximum deviation for which we will still perform replacing
+
+    Returns:
+        Penalty of calculated optimal curve or None if cannot create optimal curve
+        that will fit the requirements
     """
 
     n_of_segments = curve.n
@@ -343,7 +439,7 @@ def calculate_optimization_penalty(
     # calculate penalty
     # check tangency with edges
     current_segment = (start_segment_idx + 1) % n_of_segments
-    pen_edges = calculate_penalty_edges_tangency(current_segment, end_segment_idx, curve, opttolerance, p0, p1, p2, p3)
+    pen_edges = calculate_penalty_edges_tangency(curve, current_segment, end_segment_idx, opttolerance, p0, p1, p2, p3)
     if pen_edges is None:
         return None
 
@@ -359,6 +455,15 @@ def calculate_optimization_penalty(
 
 
 def precalculate_convexity(curve):
+
+    """Precalculate convexity for curve
+    Args:
+        curve: curve to precalculate convexity
+
+    Returns:
+        Precalculated convexity for each segment of curve
+    """
+
     convexity = list()
 
     # pre-calculate convexity: +1 = right turn, -1 = left turn, 0 = corner
@@ -380,6 +485,15 @@ def precalculate_convexity(curve):
 
 
 def precalculate_areas(curve):
+
+    """Precalculate area for curve
+    Args:
+        curve: curve to precalculate area
+
+    Returns:
+        Precalculated area for each segment of curve
+    """
+
     area = 0.0
     areac = [0.0]
     p0 = curve[0].vertex
@@ -401,10 +515,14 @@ def precalculate_areas(curve):
 
 
 def optimize_curve(curve: _Curve, opttolerance: float) -> int:
-    """
-    optimize the path p, replacing sequences of Bezier segments by a
-    single segment when possible. Return 0 on success, 1 with errno set
-    on failure.
+    """Optimize the path p, replacing sequences of Bezier segments by a
+    single segment when possible.
+    Args:
+        curve: curve to optimize
+        opttolerance: maximum deviation for which we will still perform replacing
+
+    Returns:
+        Optimized curve
     """
     n_of_segments = curve.n
     pt = [0] * (n_of_segments + 1)  # /* pt[m+1] */
