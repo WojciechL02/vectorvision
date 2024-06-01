@@ -1,11 +1,11 @@
 from PIL import ImageOps, Image
 import time
+import os
 import numpy as np
-from src.path_decomposition import Bitmap
-from src.smoothing import smooth, POTRACE_CURVETO
-from src.polygons import get_best_polygon
-from src.vertex_adjustment import adjust_vertices, _Curve
-from src.curve_optimization import optimize_curve
+from path_decomposition import Bitmap
+from smoothing import smooth, POTRACE_CURVETO
+from polygons import get_best_polygon
+from vertex_adjustment import adjust_vertices, _Curve
 from contextlib import contextmanager
 from typing import TextIO
 
@@ -55,13 +55,12 @@ class Converter:
                     self.convert_single_color(
                         color_table,
                         fh,
-                        color=color,
                         opacity=(1 - color / 255) * min(1, step / 60),
                     )
         e = time.process_time()
         print(f"Finished in {round(e - s, 2)} s\n")
 
-    def convert_single_color(self, color_table, fh, color=0, opacity=1):
+    def convert_single_color(self, color_table, fh, opacity=1):
         if not np.all(color_table):
             bm = Bitmap(color_table)
             paths_list = bm.generate_paths_list()
@@ -72,10 +71,10 @@ class Converter:
                 smooth_curve = smooth(curve, 1.0)
                 optimal_curve = optimize_curve(smooth_curve, 0.2)
                 curves.append(optimal_curve)
-            self._write_path_to_svg(fh, curves, color, opacity)
+            self._write_path_to_svg(fh, curves, opacity)
 
     def _write_path_to_svg(
-        self, fp: TextIO, curves: list[_Curve], color: int, opacity: float
+        self, fp: TextIO, curves: list[_Curve], opacity: float
     ) -> None:
         """Writes path of given color to the SVG file."""
 
@@ -94,10 +93,7 @@ class Converter:
                     b = segment.c[2]
                     parts.append(f"L{a[0]} {a[1]} {b[0]},{b[1]}")
             parts.append("z")
-
-        rgb_color = (color, color, color)
-
-        print(opacity, rgb_color)
+            
         fp.write(
             f'<path stroke="none" opacity="{opacity} " fill-rule="evenodd" d="{"".join(parts)}"/>'
         )

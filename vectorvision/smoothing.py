@@ -1,11 +1,14 @@
-from src.vertex_adjustment import _Curve
+
+from vertex_adjustment import _Curve
+from utils import interval
 import math
 import numpy as np
-from src.utils import interval
+
 
 # /* segment tags */
 POTRACE_CURVETO = 1
 POTRACE_CORNER = 2
+
 
 
 def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], point2: tuple[float, float]) -> float:
@@ -25,12 +28,16 @@ def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], po
     point1_np = np.array(point1)
     point2_np = np.array(point2)
 
-    l1_norm_p0_p2 = np.linalg.norm(point2_np-point0_np, ord=1)
+
+    l1_norm_p0_p2 = np.linalg.norm(point2_np - point0_np, ord=1)
     if l1_norm_p0_p2 != 0.0:
-        cross_product_p1_p0_p2_p0 = np.cross(point1_np-point0_np, point2_np-point0_np)
+        cross_product_p1_p0_p2_p0 = np.cross(
+            point1_np - point0_np, point2_np - point0_np
+        )
         factor_of_proportionality = math.fabs(cross_product_p1_p0_p2_p0 / l1_norm_p0_p2)
         if factor_of_proportionality > 1:
-            gamma = (1 - 1.0 / factor_of_proportionality)
+            gamma = 1 - 1.0 / factor_of_proportionality
+
         else:
             gamma = 0
         alpha = gamma / 0.75

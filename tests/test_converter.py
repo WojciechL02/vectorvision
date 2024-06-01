@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from PIL import Image
-from src.Converter import Converter, create_svg
+from vectorvision.Converter import Converter, create_svg
 from unittest.mock import mock_open, patch, MagicMock
 
 
@@ -13,7 +13,7 @@ def test_create_svg():
                   width="{width}" height="{height}" viewBox="0 0 {width} {height}">"""
     expected_footer = "</svg>"
 
-    with patch("src.Converter.open", mock_open()) as mocked_file:
+    with patch("vectorvision.Converter.open", mock_open()) as mocked_file:
         with create_svg(name, width, height) as file:
             file.write("content")
 

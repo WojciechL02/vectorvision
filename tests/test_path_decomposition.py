@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from PIL import Image
-from src.path_decomposition import Bitmap
+from vectorvision.path_decomposition import Bitmap
 
 # ============= Bitmap constructor ===============
 
@@ -81,6 +81,73 @@ def test_find_next_path_start_standard(bm_standard):
         start = next(starts)
         assert np.array_equal(start, ex)
         bm_standard.bitmap[ex[0], ex[1]] = 0
+
+
+# ======== _get_majority_value ========
+
+
+@pytest.fixture
+def majority_bitmap():
+    return Bitmap(np.array([[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]]))
+
+
+def test_majority_value_center(majority_bitmap):
+    assert majority_bitmap._get_majority_value(1, 1) == 0
+    assert majority_bitmap._get_majority_value(2, 2) == 0
+
+
+def test_majority_value_edges(majority_bitmap):
+    assert majority_bitmap._get_majority_value(0, 0) == 0
+    assert majority_bitmap._get_majority_value(3, 3) == 0
+
+
+def test_majority_value_near_edges(majority_bitmap):
+    assert majority_bitmap._get_majority_value(0, 1) == 1
+    assert majority_bitmap._get_majority_value(1, 0) == 1
+    assert majority_bitmap._get_majority_value(3, 1) == 0
+    assert majority_bitmap._get_majority_value(1, 3) == 0
+
+
+def test_majority_value_single_row_column():
+    bitmap = np.array([[0, 1, 0, 1, 0]])
+    test_class = Bitmap(bitmap)
+    assert test_class._get_majority_value(2, 0) == 1
+
+    bitmap = np.array([[0], [1], [0], [1], [0]])
+    test_class = Bitmap(bitmap)
+    assert test_class._get_majority_value(0, 2) == 1
+
+
+def test_majority_value_large_bitmap():
+    bitmap = np.array(
+        [
+            [0] * 10,
+            [1] * 10,
+            [0] * 10,
+            [1] * 10,
+            [0] * 10,
+            [1] * 10,
+            [0] * 10,
+            [1] * 10,
+            [0] * 10,
+            [1] * 10,
+        ]
+    )
+    test_class = Bitmap(bitmap)
+    assert test_class._get_majority_value(5, 5) == 1
+    assert test_class._get_majority_value(0, 0) == 1
+
+
+def test_majority_value_all_ones():
+    bitmap = np.array([[0] * 4, [0] * 4, [0] * 4, [0] * 4])
+    test_class = Bitmap(bitmap)
+    assert test_class._get_majority_value(2, 2) == 1
+
+
+def test_majority_value_all_zeros():
+    bitmap = np.array([[1] * 4, [1] * 4, [1] * 4, [1] * 4])
+    test_class = Bitmap(bitmap)
+    assert test_class._get_majority_value(2, 2) == 0
 
 
 # ============= find_path =============

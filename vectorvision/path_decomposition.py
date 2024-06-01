@@ -123,6 +123,22 @@ class Bitmap:
                 self._xor_to_ref(x, min(y, y1), xa)
                 y1 = y
 
+
+    def _get_color_in_bounds(self, x_, y_):
+        """Get the color at a given point.
+
+        Args:
+            point: point in the bitmap
+
+        Returns:
+            Value of the color at the specified point. Returns 0 if point is out of range. -1 when white and 1 otherwise.
+        """
+        x_size, y_size = self.bitmap.shape
+        if y_ in range(x_size) and x_ in range(y_size):
+            return 1 if self.bitmap[y_][x_] else -1
+        return 0
+
+      
     def _get_majority_value(self, x: int, y: int) -> int:
         """Computes the "majority" value of bitmap bm at intersection (x,y). We
         assume that the bitmap is balanced at "radius" 1.
@@ -137,22 +153,11 @@ class Bitmap:
         for i in range(2, 5):
             ct = 0
             for a in range(-i + 1, i - 2):
-                try:
-                    ct += 1 if self.bitmap[y + i - 1][x + a] else -1
-                except IndexError:
-                    pass
-                try:
-                    ct += 1 if self.bitmap[y + a - 1][x + i - 1] else -1
-                except IndexError:
-                    pass
-                try:
-                    ct += 1 if self.bitmap[y - i][x + a - 1] else -1
-                except IndexError:
-                    pass
-                try:
-                    ct += 1 if self.bitmap[y + a][x - i] else -1
-                except IndexError:
-                    pass
+                ct += self._get_color_in_bounds(x + a, y + i - 1)
+                ct += self._get_color_in_bounds(x + i - 1, y + a)
+                ct += self._get_color_in_bounds(x + a - 1, y - i)
+                ct += self._get_color_in_bounds(x - i, y + a)
+
             if ct > 0:
                 return 1
             elif ct < 0:
@@ -201,24 +206,21 @@ class Bitmap:
             right_color = self._get_color_at_point(right)
 
             if left_color and not right_color:
-                # if (
-                #     turnpolicy == Turnpolicy.RIGHT
-                #     or (
-                #         turnpolicy == Turnpolicy.MAJORITY
-                #         and self._get_majority_value(x, y)
-                #     )
-                #     or (
-                #         turnpolicy == Turnpolicy.MINORITY
-                #         and not self._get_majority_value(x, y)
-                #     )
-                # ):
-                #     step_x, step_y = step_y, -step_x  # right turn
-                #
-                # else:
-                # tmp = dirx  # /* left turn */
-                # dirx = -diry
-                # diry = tmp
-                step_x, step_y = -step_y, step_x  # left turn
+                if (
+                    turnpolicy == Turnpolicy.RIGHT
+                    or (
+                        turnpolicy == Turnpolicy.MAJORITY
+                        and self._get_majority_value(x, y)
+                    )
+                    or (
+                        turnpolicy == Turnpolicy.MINORITY
+                        and not self._get_majority_value(x, y)
+                    )
+                ):
+                    step_x, step_y = step_y, -step_x  # right turn
+
+                else:
+                    step_x, step_y = -step_y, step_x  # left turn
 
             elif left_color:  # left turn
                 step_x, step_y = step_y, -step_x
