@@ -376,7 +376,8 @@ def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
 
 def calculate_alpha(area, p0_o_p3_triangle_area):
     """Calculate alpha parameter for curve based on ratio of area under curve and triangle
-      with two sides tangent to the curve
+    with two sides tangent to the curve
+      
     Args:
         area: area under curve
         p0_o_p3_triangle_area: area of triangle

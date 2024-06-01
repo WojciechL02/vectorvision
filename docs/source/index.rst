@@ -13,8 +13,7 @@ Welcome to vectorvision's documentation!
    overview
    configuration
    examples
-
-
+   technical_specs
 
 
 
