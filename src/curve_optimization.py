@@ -367,6 +367,7 @@ def calculate_alpha(area, p0_o_p3_triangle_area):
 
     R = area / p0_o_p3_triangle_area    # relative area
     alpha = 2 - math.sqrt(4 - R / 0.3)  # overall alpha for p0-o-p3 curve
+
     return alpha
 
 
