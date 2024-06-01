@@ -1,6 +1,6 @@
 from vectorvision.decompose import bm_to_paths_list
 
-from vectorvision.polygons import get_best_polygon, calc_longest_straight_subpaths
+from vectorvision.polygons import get_best_polygon, get_longest_straight_subpaths
 from vectorvision.vertex_adjustment import adjust_vertices
 from vectorvision.smoothing import smooth, POTRACE_CORNER, POTRACE_CURVETO
 from PIL import Image
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # ===== GENERATE PATHS LIST =====
     paths_list = bm_to_paths_list(np.invert(np_image))
     polygons = [get_best_polygon(path) for path in paths_list]
-    longest_straights = [calc_longest_straight_subpaths(path) for path in paths_list]
+    longest_straights = [get_longest_straight_subpaths(path) for path in paths_list]
     curves = list()
 
     fig, ax = plt.subplots()
