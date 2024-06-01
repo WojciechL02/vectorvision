@@ -8,7 +8,6 @@ Sums = namedtuple(
 )
 
 
-=
 def calc_sums(path: list) -> namedtuple:
     """"
     Calculate cumulative sums for the given path.
