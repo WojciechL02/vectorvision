@@ -185,8 +185,8 @@ def calculate_penalty_edges_tangency(
 
 
 def calculate_penalty_corners(
-    curve, start_index, end_index, opttolerance, p0, p1, p2, p3
-):
+    curve: _Curve, start_index: int, end_index: int, opttolerance: float, p0, p1, p2, p3
+) -> float:
     """Calculates part of penalty connected with tangency with corners
 
     Args:
@@ -234,7 +234,7 @@ def calculate_penalty_corners(
     return penalty
 
 
-def check_if_smaller_than_179(curve, start_segment_idx, end_segment_idx):
+def check_if_smaller_than_179(curve: _Curve, start_segment_idx: int, end_segment_idx: int) -> bool:
     """Checks if condition of not exceeding 179 degrees in one curve is satisfied for given segments
 
     Args:
@@ -271,8 +271,8 @@ def check_if_smaller_than_179(curve, start_segment_idx, end_segment_idx):
 
 
 def check_if_same_convexity(
-    curve, convexity, convexity_precalculated, start_segment_idx, end_segment_idx
-):
+    curve: _Curve, convexity: int, convexity_precalculated: list[int], start_segment_idx: int, end_segment_idx: int
+) -> bool:
     """Checks if condition of the same convexity is satisfied for given segments
 
     Args:
@@ -307,7 +307,7 @@ def check_if_same_convexity(
     return True
 
 
-def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
+def check_necessary_conditions(curve: _Curve, start_segment_idx: int, end_segment_idx: int) -> bool:
     """Checks if all necessary conditions to allow merging curves into one are satisfied
 
     Args:
@@ -348,7 +348,7 @@ def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
     return True
 
 
-def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
+def calculate_curve_area(curve: _Curve, start_segment_idx: int, end_segment_idx: int) -> float:
     """Calculate are under given segments of curve
 
     Args:
@@ -375,7 +375,7 @@ def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
     return area
 
 
-def calculate_alpha(area, p0_o_p3_triangle_area):
+def calculate_alpha(area: float, p0_o_p3_triangle_area: float) -> float:
     """Calculate alpha parameter for curve based on ratio of area under curve and triangle
     with two sides tangent to the curve
 
@@ -398,7 +398,7 @@ def calculate_optimization_penalty(
     start_segment_idx: int,
     end_segment_idx: int,
     opttolerance: float,
-) -> int:
+) -> OptiT:
     """Calculate penalty of optimized curve part between two segments
 
     Args:
@@ -480,7 +480,7 @@ def calculate_optimization_penalty(
     return OptiT(penalty, c, alpha, s)
 
 
-def precalculate_convexity(curve):
+def precalculate_convexity(curve: _Curve) -> list[int]:
     """Precalculate convexity for curve
     Args:
         curve: curve to precalculate convexity
@@ -509,7 +509,7 @@ def precalculate_convexity(curve):
     return convexity
 
 
-def precalculate_areas(curve):
+def precalculate_areas(curve: _Curve) -> list[float]:
     """Precalculate area for curve
     Args:
         curve: curve to precalculate area
@@ -538,7 +538,7 @@ def precalculate_areas(curve):
     return areac
 
 
-def optimize_curve(curve: _Curve, opttolerance: float) -> int:
+def optimize_curve(curve: _Curve, opttolerance: float) -> _Curve:
     """Optimize the path p, replacing sequences of Bezier segments by a
     single segment when possible.
 
