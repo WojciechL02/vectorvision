@@ -34,7 +34,7 @@ def calc_sums(path: list) -> namedtuple:
 
 def cyclic(a: int, b: int, c: int) -> bool:
     """
-    Determine if a value b is between a and c in a cyclic sense.
+    Determine if the value 'b' is between 'a' and 'c' in a cyclic sense.
 
     Args:
         a (int): The start value.
@@ -220,6 +220,7 @@ def get_pivot_points(path: list, next_corner: list, path_len: int) -> list:
             
         pivot_points[i] = (last_corner_index + j) % path_len
     
+ 
     return pivot_points
 
 
@@ -242,19 +243,13 @@ def get_longest_straight_subpaths(path: list) -> list:
     # Remove the cyclic inaccuracies so that longest_straight_subpaths[i]
     # represents the largest k such that for all i' with i <= i' < k, i' < k <= pivot_point[i'].
     
-    
     j = pivot_point[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
     for i in range(path_len - 1, -1, -1):
         if cyclic(i + 1, pivot_point[i], j):
             j = pivot_point[i]
         longest_straight_subpaths[i] = j
-
-    i = path_len - 1
-    while cyclic((i+1) % path_len, j, longest_straight_subpaths[i]):
-        longest_straight_subpaths[i] = j
-        i -= 1
-
+        
     return longest_straight_subpaths
 
 
@@ -303,7 +298,9 @@ def penalty3(path: list, sums: list, i: int, j: int) -> float:
     b = (segment_sum_xy - segment_sum_x * mid_y - segment_sum_y * mid_x) / k + mid_x * mid_y
     c = (segment_sum_y2 - 2 * segment_sum_y * mid_y) / k + mid_y * mid_y
 
+
     penalty = math.sqrt(edge_x * edge_x * a + 2 * edge_x * edge_y * b + edge_y * edge_y * c)
+
     return penalty
 
 
@@ -328,7 +325,7 @@ def clip_path_forward(longest_straight_subpaths: list, path_len: int) -> list:
             forward_clips[i] = path_len
         else:
             forward_clips[i] = c
-
+        
     return forward_clips
     
 
@@ -450,3 +447,4 @@ def get_best_polygon(path: list) -> list:
         j -= 1
     
     return polygon
+
