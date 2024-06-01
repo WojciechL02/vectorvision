@@ -38,9 +38,25 @@ To install this tool run:
 
 ## Usage:
 
-This is the command view that you can use to run the tool:
+    vectorvision [-h] -i INPUT_PATH [-o OUTPUT_PATH] [--turnpolicy {black,white,left,right,majority,minority}] [--turdsize TURDSIZE] [--alpha-max ALPHA_MAX]
+               [--longcurve | --no-longcurve] [--opttolerance OPTTOLERANCE] [--scale SCALE]
 
-`vectorvision -i <input_path>`
+    vectorvision - CLI tool for raster graphics vectorizing
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -i INPUT_PATH, --input-path INPUT_PATH
+    -o OUTPUT_PATH, --output-path OUTPUT_PATH
+    --turnpolicy {black,white,left,right,majority,minority}
+                            policy which turn take if more than one possibility is legal
+    --turdsize TURDSIZE   drop all paths smaller than selected turdsize
+    --alpha-max ALPHA_MAX
+                            minimum value of alpha parameter to interpret curve as a corner
+    --longcurve, --no-longcurve
+                            disable optimization step (default: False)
+    --opttolerance OPTTOLERANCE
+                            maximum deviation between original and optimized curves which allow to replace original ones with optimal
+    --scale SCALE         scale factor for resulting image
 
 The output image will have the same name as input and will be saved in the same directory.
 
