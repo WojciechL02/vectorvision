@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.decompose import find_next_path_start, find_path, invert_color_inside_path
+from vectorvision.decompose import find_next_path_start, find_path, invert_color_inside_path
 
 # ============= find_next_path_start =============
 

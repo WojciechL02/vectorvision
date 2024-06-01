@@ -1,5 +1,5 @@
-from src.vertex_adjustment import _Curve
-from src.vertex_adjustment import calculate_intersection_point
+from vectorvision.vertex_adjustment import _Curve
+from vectorvision.vertex_adjustment import calculate_intersection_point
 import math
 from shapely.geometry import Point, Polygon, LineString
 from shapely.ops import nearest_points

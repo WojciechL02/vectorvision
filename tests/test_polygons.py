@@ -1,5 +1,5 @@
 import pytest
-from src.polygons import (
+from vectorvision.polygons import (
     Sums,
     cyclic,
     calc_sums,

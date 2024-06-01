@@ -1,10 +1,10 @@
 from PIL import Image
 import argparse
 import numpy as np
-from src.smoothing import smooth, POTRACE_CURVETO
-from src.decompose import bm_to_paths_list
-from src.polygons import get_best_polygon
-from src.vertex_adjustment import adjust_vertices, _Curve
+from vectorvision.smoothing import smooth, POTRACE_CURVETO
+from vectorvision.decompose import bm_to_paths_list
+from vectorvision.polygons import get_best_polygon
+from vectorvision.vertex_adjustment import adjust_vertices, _Curve
 from typing import TextIO
 
 
