@@ -8,6 +8,7 @@ Sums = namedtuple(
 )
 
 
+=
 def calc_sums(path: list) -> namedtuple:
     """"
     Calculate cumulative sums for the given path.
@@ -18,6 +19,7 @@ def calc_sums(path: list) -> namedtuple:
     Returns:
         sums (Sums): A list of `Sums` namedtuples, each containing cumulative sums of x, y, xy, x^2, and y^2 coordinates.
     """
+
     a = np.array([(0, 0)] + path)
     a[1:, :] -= np.array(path[0])
     css = np.cumsum(a, axis=0)
@@ -30,6 +32,7 @@ def calc_sums(path: list) -> namedtuple:
         x2, y2 = cs2[i]
         sums.append(Sums(x, y, csm[i], x2, y2))
     return sums
+
 
 
 def cyclic(a: int, b: int, c: int) -> bool:
@@ -48,6 +51,8 @@ def cyclic(a: int, b: int, c: int) -> bool:
         return a <= b < c
     else:
         return a <= b or b < c
+        
+
 
 
 def get_next_corners(path: list, path_len: int) -> list:

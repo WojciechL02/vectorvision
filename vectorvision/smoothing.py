@@ -1,27 +1,14 @@
+
 from vertex_adjustment import _Curve
+from utils import interval
 import math
 import numpy as np
+
 
 # /* segment tags */
 POTRACE_CURVETO = 1
 POTRACE_CORNER = 2
 
-
-def interval(proportion: float, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
-
-    """
-        Calculate the point which is splitting section into two parts in given proportion
-
-        Args:
-            proportion: in which proportion segment should be splitted, ratio ax/ab
-            a: first point
-            b: second point
-
-        Returns:
-            point splitting segment ab in given proportion
-    """
-
-    return (a[0] + proportion * (b[0] - a[0]), a[1] + proportion * (b[1] - a[1]))
 
 
 def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], point2: tuple[float, float]) -> float:
@@ -41,6 +28,7 @@ def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], po
     point1_np = np.array(point1)
     point2_np = np.array(point2)
 
+
     l1_norm_p0_p2 = np.linalg.norm(point2_np - point0_np, ord=1)
     if l1_norm_p0_p2 != 0.0:
         cross_product_p1_p0_p2_p0 = np.cross(
@@ -49,6 +37,7 @@ def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], po
         factor_of_proportionality = math.fabs(cross_product_p1_p0_p2_p0 / l1_norm_p0_p2)
         if factor_of_proportionality > 1:
             gamma = 1 - 1.0 / factor_of_proportionality
+
         else:
             gamma = 0
         alpha = gamma / 0.75

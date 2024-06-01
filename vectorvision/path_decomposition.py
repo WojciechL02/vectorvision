@@ -123,6 +123,7 @@ class Bitmap:
                 self._xor_to_ref(x, min(y, y1), xa)
                 y1 = y
 
+
     def _get_color_in_bounds(self, x_, y_):
         """Get the color at a given point.
 
@@ -137,6 +138,7 @@ class Bitmap:
             return 1 if self.bitmap[y_][x_] else -1
         return 0
 
+      
     def _get_majority_value(self, x: int, y: int) -> int:
         """Computes the "majority" value of bitmap bm at intersection (x,y). We
         assume that the bitmap is balanced at "radius" 1.
@@ -155,6 +157,7 @@ class Bitmap:
                 ct += self._get_color_in_bounds(x + i - 1, y + a)
                 ct += self._get_color_in_bounds(x + a - 1, y - i)
                 ct += self._get_color_in_bounds(x - i, y + a)
+
             if ct > 0:
                 return 1
             elif ct < 0:
