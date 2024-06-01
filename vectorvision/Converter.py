@@ -1,11 +1,11 @@
 from PIL import ImageOps, Image
 import time
 import numpy as np
-from path_decomposition import Bitmap
-from smoothing import smooth, POTRACE_CURVETO
-from polygons import get_best_polygon
-from vertex_adjustment import adjust_vertices, _Curve
-from curve_optimization import optimize_curve
+from vectorvision.path_decomposition import Bitmap
+from vectorvision.smoothing import smooth, POTRACE_CURVETO
+from vectorvision.polygons import get_best_polygon
+from vectorvision.vertex_adjustment import adjust_vertices, _Curve
+from vectorvision.curve_optimization import optimize_curve
 from contextlib import contextmanager
 from typing import TextIO
 

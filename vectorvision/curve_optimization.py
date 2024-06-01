@@ -1,5 +1,5 @@
-from vertex_adjustment import _Curve
-from utils import interval
+from vectorvision.vertex_adjustment import _Curve
+from vectorvision.utils import interval
 from collections import namedtuple
 import numpy as np
 import math

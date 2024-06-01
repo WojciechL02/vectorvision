@@ -1,7 +1,7 @@
 import os
 import argparse
 from PIL import Image
-from Converter import Converter
+from vectorvision.Converter import Converter
 
 
 def validate_input(args):
