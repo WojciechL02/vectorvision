@@ -136,7 +136,7 @@ def test_calculate_alpha():
 @pytest.fixture
 def curve1():
     curve = _Curve(3)
-    curve[0].c[0] = (40.725, 15.337500000000006)
+    curve[0].c[0] = (40.725, 15.3375)
     curve[0].c[1] = (40.725, 14.8875)
     curve[0].c[2] = (41.0, 14.75)
     curve[0].vertex = (40.5, 15.0)
@@ -156,46 +156,74 @@ def curve1():
     return curve
 
 
-
-
 @pytest.fixture
 def curve2():
     curve = _Curve(6)
-    curve[0].c[0] = (36.061358921161826, 31.60057053941909)
-    curve[0].c[1] =  (36.98567747282985, 29.50716126358508)
-    curve[0].c[2] =  (37.20653085248496, 29.396734573757527)
-    curve[0].vertex = (36.80497925311203, 29.597510373443985)
+    curve[0].c[0] = (36.0613, 31.6005)
+    curve[0].c[1] = (36.9856, 29.5071)
+    curve[0].c[2] = (37.20653, 29.39673)
+    curve[0].vertex = (36.80497, 29.59751)
     curve[0].tag = 1
 
-    curve[1].c[0] = (37.427384232140064, 29.286307883929975)
-    curve[1].c[1] = (37.78158820978288, 29.330560818800425)
-    curve[1].c[2] =  (37.99365080280233, 29.495074429025195)
-    curve[1].vertex = (37.60808245185788, 29.19595877407107)
+    curve[1].c[0] = (37.42738, 29.28630)
+    curve[1].c[1] = (37.78158, 29.33056)
+    curve[1].c[2] = (37.99365, 29.49507)
+    curve[1].vertex = (37.60808, 29.19595)
     curve[1].tag = 1
 
-    curve[2].c[0] = (38.205713395821775, 29.65958803924996)
-    curve[2].c[1] = (37.51433602062434, 32.990497315083964)
-    curve[2].c[2] = (36.45725663569692, 36.897095041989644)
-    curve[2].vertex = (38.379219153746774, 29.794190083979316)
+    curve[2].c[0] = (38.20571, 29.65958)
+    curve[2].c[1] = (37.51433, 32.99049)
+    curve[2].c[2] = (36.45725, 36.89709)
+    curve[2].vertex = (38.37921, 29.79419)
     curve[2].tag = 1
 
-    curve[3].c[0] = (35.184301050119835, 41.60149611912235)
-    curve[3].c[1] =  (34.03970010545675, 43.99999999999998)
-    curve[3].c[2] =  (33.06764705882355, 43.99999999999997)
-    curve[3].vertex = (34.53529411764707, 43.99999999999998)
+    curve[3].c[0] = (35.18430, 41.60149)
+    curve[3].c[1] = (34.03970, 44)
+    curve[3].c[2] = (33.06764, 44)
+    curve[3].vertex = (34.53529, 44)
     curve[3].tag = 1
 
-    curve[4].c[0] = (31.902941176470623, 43.99999999999997)
-    curve[4].c[1] = (31.796092184368767, 43.43236472945888)
-    curve[4].c[2] =  (32.55000000000001, 41.249999999999986)
-    curve[4].vertex = (31.60000000000003, 43.99999999999997)
+    curve[4].c[0] = (31.90294, 44)
+    curve[4].c[1] = (31.79609, 43.43236)
+    curve[4].c[2] = (32.55, 41.25)
+    curve[4].vertex = (31.6, 44)
     curve[4].tag = 1
 
     curve[5].c[0] = (33.072500000000005, 39.7375)
-    curve[5].c[1] = (34.243620331950204, 36.4969398340249)
-    curve[5].c[2] =  (35.15248962655602, 34.04875518672199)
+    curve[5].c[1] = (34.24362, 36.49693)
+    curve[5].c[2] = (35.15249, 34.04875)
     curve[5].vertex = (33.5, 38.5)
     curve[5].tag = 1
+
+    return curve
+
+
+@pytest.fixture
+def curve_different_convexity():
+    curve = _Curve(4)
+    curve[0].c[0] = (-0.12159090909090886, 1.2454545454545447)
+    curve[0].c[1] = (-0.1233695652173914, 0.7554347826086949)
+    curve[0].c[2] = (0.3369565217391305,  0.45652173913043437)
+    curve[0].vertex = (-0.5, 1)
+    curve[0].tag = 1
+
+    curve[1].c[0] = (0.7972826086956524, 0.15760869565217372)
+    curve[1].c[1] = (1.9222826086956522, 0.07871259175607004)
+    curve[1].c[2] = (2.836956521739131, 0.28119706380575965)
+    curve[1].vertex = (1.173913043478261, -0.08695652173913049)
+    curve[1].tag = 1
+
+    curve[2].c[0] = (4.384723251129528, 0.6238314437607854)
+    curve[2].c[1] = (4.3849972303306455, 0.6993127136688428)
+    curve[2].c[2] = (2.8409090909090917, 1.3701298701298705)
+    curve[2].vertex = (4.5, 0.6493506493506498)
+    curve[2].tag = 1
+
+    curve[3].c[0] = (1.928409090909092, 1.7665584415584419)
+    curve[3].c[1] = (0.8034090909090923, 1.8454545454545457)
+    curve[3].c[2] = (0.3409090909090917, 1.5454545454545452)
+    curve[3].vertex = (1.1818181818181834, 2.0909090909090913)
+    curve[3].tag = 1
 
     return curve
 
@@ -204,7 +232,7 @@ def test_calculate_curve_area(curve1):
     assert calculate_curve_area(curve1, 0, 2) == 0.25
 
 
-def test_precalculate_convexity(curve1):
+def test_precalculate_convexity1(curve1):
     assert precalculate_convexity(curve1) == [1, 1, 1]
 
 
@@ -213,15 +241,20 @@ def test_precalculate_areas(curve1):
 
 
 def test_check_check_if_smaller_than_179(curve1):
-    check_if_smaller_than_179(curve1, 1, 0) is True
+    assert check_if_smaller_than_179(curve1, 1, 0) is True
+
+
+def test_check_check_if_same_convexity2(curve_different_convexity):
+    precalculated = precalculate_convexity(curve_different_convexity)
+    check_if_same_convexity(curve_different_convexity, 1, precalculated, 1, 0) is False
 
 
 def test_check_check_if_same_convexity(curve1):
-    precalulcated = precalculate_convexity(curve1)
-    check_if_same_convexity(curve1, 1, precalulcated, 1, 0) is True
+    precalculated = precalculate_convexity(curve1)
+    assert check_if_same_convexity(curve1, 1, precalculated, 0, 1) is True
 
 
-def test_check_necesarry_condtition(curve1):
+def test_check_necessary_condtition(curve1):
     assert check_necessary_conditions(curve1, 0, 2) is False
 
 
@@ -231,29 +264,40 @@ def test_optimize_no_optimization(curve1):
     assert optimize_curve(curve1, 0.2)[2].c == curve1[0].c
 
 
-def test_optimize_true_optimization(curve2):
-    assert optimize_curve(curve2, 0.2)[0].c[0][0] == pytest.approx(37.427384232140064)
-    assert optimize_curve(curve2, 0.2)[0].c[1][0] == pytest.approx(37.78158820978288)
-    assert optimize_curve(curve2, 0.2)[0].c[2][0] == pytest.approx(37.99365080280233)
-    assert optimize_curve(curve2, 0.2)[1].c[0][0] == pytest.approx(38.6439623198522)
-    assert optimize_curve(curve2, 0.2)[1].c[1][0] == pytest.approx(33.88929055983703)
-    assert optimize_curve(curve2, 0.2)[1].c[2][0] == pytest.approx(33.06764705882355)
-    assert optimize_curve(curve2, 0.2)[2].c[0][0] == pytest.approx(31.902941176470623)
-    assert optimize_curve(curve2, 0.2)[2].c[1][0] == pytest.approx(31.796092184368767)
-    assert optimize_curve(curve2, 0.2)[2].c[2][0] == pytest.approx(32.55)
-    assert optimize_curve(curve2, 0.2)[3].c[0][0] == pytest.approx(34.07131120059729)
-    assert optimize_curve(curve2, 0.2)[3].c[1][0] == pytest.approx(36.94680334247328)
-    assert optimize_curve(curve2, 0.2)[3].c[2][0] == pytest.approx(37.20653085248496)
+def test_caluclate_penalty(curve2):
+    opti_t = calculate_optimization_penalty(curve2, 1, 3, 0.2)
 
-    assert optimize_curve(curve2, 0.2)[0].c[0][1] == pytest.approx(29.286307883929975)
-    assert optimize_curve(curve2, 0.2)[0].c[1][1] == pytest.approx(29.330560818800425)
-    assert optimize_curve(curve2, 0.2)[0].c[2][1] == pytest.approx(29.495074429025195)
-    assert optimize_curve(curve2, 0.2)[1].c[0][1] == pytest.approx(29.999572152632723)
-    assert optimize_curve(curve2, 0.2)[1].c[1][1] == pytest.approx(43.99999999999998)
-    assert optimize_curve(curve2, 0.2)[1].c[2][1] == pytest.approx(43.99999999999997)
-    assert optimize_curve(curve2, 0.2)[2].c[0][1] == pytest.approx(43.99999999999997)
-    assert optimize_curve(curve2, 0.2)[2].c[1][1] == pytest.approx(43.43236472945888)
-    assert optimize_curve(curve2, 0.2)[2].c[2][1] == pytest.approx(41.249999999999986)
-    assert optimize_curve(curve2, 0.2)[3].c[0][1] == pytest.approx(36.84620441932362)
-    assert optimize_curve(curve2, 0.2)[3].c[1][1] == pytest.approx(29.52659832876336)
-    assert optimize_curve(curve2, 0.2)[3].c[2][1] == pytest.approx(29.396734573757527)
+    assert opti_t.pen == pytest.approx(0.091065)
+    assert opti_t.s == pytest.approx(16.09551)
+    assert opti_t.alpha == pytest.approx(0.03478198)
+
+
+def test_optimize_true_optimization(curve2):
+    opti_curve = optimize_curve(curve2, 0.2)
+
+    assert len(opti_curve) == 4
+    assert opti_curve[0].c[0][0] == pytest.approx(37.42738)
+    assert opti_curve[0].c[1][0] == pytest.approx(37.78158)
+    assert opti_curve[0].c[2][0] == pytest.approx(37.99365)
+    assert opti_curve[1].c[0][0] == pytest.approx(38.64396)
+    assert opti_curve[1].c[1][0] == pytest.approx(33.88929)
+    assert opti_curve[1].c[2][0] == pytest.approx(33.06764)
+    assert opti_curve[2].c[0][0] == pytest.approx(31.90294)
+    assert opti_curve[2].c[1][0] == pytest.approx(31.79609)
+    assert opti_curve[2].c[2][0] == pytest.approx(32.55)
+    assert opti_curve[3].c[0][0] == pytest.approx(34.07131)
+    assert opti_curve[3].c[1][0] == pytest.approx(36.94680)
+    assert opti_curve[3].c[2][0] == pytest.approx(37.20653)
+
+    assert opti_curve[0].c[0][1] == pytest.approx(29.28630)
+    assert opti_curve[0].c[1][1] == pytest.approx(29.33056)
+    assert opti_curve[0].c[2][1] == pytest.approx(29.49507)
+    assert opti_curve[1].c[0][1] == pytest.approx(29.99957)
+    assert opti_curve[1].c[1][1] == pytest.approx(44)
+    assert opti_curve[1].c[2][1] == pytest.approx(44)
+    assert opti_curve[2].c[0][1] == pytest.approx(44)
+    assert opti_curve[2].c[1][1] == pytest.approx(43.432364)
+    assert opti_curve[2].c[2][1] == pytest.approx(41.25)
+    assert opti_curve[3].c[0][1] == pytest.approx(36.846204)
+    assert opti_curve[3].c[1][1] == pytest.approx(29.526598)
+    assert opti_curve[3].c[2][1] == pytest.approx(29.396734)

@@ -70,17 +70,7 @@ class Converter:
             for path, polygon in zip(paths_list, polygons):
                 curve = adjust_vertices(path, polygon)
                 smooth_curve = smooth(curve, 1.0)
-                print(len(smooth_curve))
-                if len(smooth_curve) == 6:
-                    for segment in smooth_curve:
-                        print(segment.c, segment.vertex, segment.tag)
-                    print('--------------------')
                 optimal_curve = optimize_curve(smooth_curve, 0.2)
-                if len(smooth_curve) == 6:
-                    len(optimal_curve)
-                    for segment in optimal_curve:
-                        print(segment.c, segment.vertex, segment.tag)
-                    print('--------------------')
                 curves.append(optimal_curve)
             self._write_path_to_svg(fh, curves, color, opacity)
 
