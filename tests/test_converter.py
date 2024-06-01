@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 from PIL import Image
 from vectorvision.Converter import Converter, create_svg
@@ -17,7 +16,7 @@ def test_create_svg():
         with create_svg(name, width, height) as file:
             file.write("content")
 
-        mocked_file.assert_called_once_with(f"{name}.svg", "+w")
+        mocked_file.assert_called_once_with(f"{name}", "+w")
         handle = mocked_file()
 
         handle.write.assert_any_call(expected_header)  # check header

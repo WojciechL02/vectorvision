@@ -12,7 +12,7 @@ from typing import TextIO
 
 @contextmanager
 def create_svg(name: str, width: int, height: int):
-    file = open(f"{name}.svg", "+w")
+    file = open(f"{name}", "+w")
     file.write(
         f"""<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                   width="{width}" height="{height}" viewBox="0 0 {width} {height}">"""
@@ -25,13 +25,19 @@ def create_svg(name: str, width: int, height: int):
 
 
 class Converter:
-    def __init__(self, image: Image):
+    def __init__(self, image: Image, turnpolicy, turdsize, alpha_max, is_long_curve, opttolreance, scale):
         self.image = image
         self.num_colors = len(image.getcolors(17000000))
+        self.turnpolicy = turnpolicy
+        self.turdsize = turdsize
+        self.alpha_max = alpha_max
+        self.is_long_curve = is_long_curve
+        self.opttolerance = opttolreance
+        self.scale = scale
 
     def run(self, path):
         s = time.process_time()
-        with create_svg(path, self.image.width, self.image.height) as fh:
+        with create_svg(path, self.image.width * self.scale, self.image.height * self.scale) as fh:
             if self.num_colors == 2:
                 print("BINARY")
                 a = np.array(self.image)
@@ -63,14 +69,17 @@ class Converter:
     def convert_single_color(self, color_table, fh, opacity=1):
         if not np.all(color_table):
             bm = Bitmap(color_table)
-            paths_list = bm.generate_paths_list()
+            paths_list = bm.generate_paths_list(self.turdsize, self.turnpolicy)
             polygons = [get_best_polygon(path) for path in paths_list]
             curves = list()
             for path, polygon in zip(paths_list, polygons):
                 curve = adjust_vertices(path, polygon)
-                smooth_curve = smooth(curve, 1.0)
-                optimal_curve = optimize_curve(smooth_curve, 0.2)
-                curves.append(optimal_curve)
+                smooth_curve = smooth(curve, self.alpha_max)
+                if not self.is_long_curve:
+                    optimal_curve = optimize_curve(smooth_curve, self.opttolerance)
+                    curves.append(optimal_curve)
+                else:
+                    curves.append(smooth_curve)
             self._write_path_to_svg(fh, curves, opacity)
 
     def _write_path_to_svg(
@@ -81,17 +90,18 @@ class Converter:
         parts = list()
         for curve in curves:
             first_segment = curve.segments[-1].c[2]
-            parts.append(f"M{first_segment[0]},{first_segment[1]}")
+            parts.append(f"M{first_segment[0] * self.scale},{first_segment[1] * self.scale}")
             for segment in curve.segments:
                 if segment.tag == POTRACE_CURVETO:
                     a = segment.c[0]
                     b = segment.c[1]
                     c = segment.c[2]
-                    parts.append(f"C{a[0]} {a[1]}, {b[0]} {b[1]}, {c[0]} {c[1]}")
+                    parts.append(f"""C{a[0] * self.scale} {a[1] * self.scale},
+                                  {b[0] * self.scale} {b[1] * self.scale}, {c[0] * self.scale} {c[1] * self.scale}""")
                 else:
                     a = segment.c[1]
                     b = segment.c[2]
-                    parts.append(f"L{a[0]} {a[1]} {b[0]},{b[1]}")
+                    parts.append(f"L{a[0] * self.scale} {a[1] * self.scale} {b[0] * self.scale},{b[1] * self.scale}")
             parts.append("z")
 
         fp.write(

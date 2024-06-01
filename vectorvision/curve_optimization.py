@@ -350,6 +350,7 @@ def check_necessary_conditions(curve, start_segment_idx, end_segment_idx):
 
 def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
     """Calculate are under given segments of curve
+
     Args:
         curve: curve for which subset we want to calculate area
         start_segment_idx: index of first segment of curve part for which we want to calculate area
@@ -377,7 +378,7 @@ def calculate_curve_area(curve, start_segment_idx, end_segment_idx):
 def calculate_alpha(area, p0_o_p3_triangle_area):
     """Calculate alpha parameter for curve based on ratio of area under curve and triangle
     with two sides tangent to the curve
-      
+
     Args:
         area: area under curve
         p0_o_p3_triangle_area: area of triangle
@@ -540,6 +541,7 @@ def precalculate_areas(curve):
 def optimize_curve(curve: _Curve, opttolerance: float) -> int:
     """Optimize the path p, replacing sequences of Bezier segments by a
     single segment when possible.
+
     Args:
         curve: curve to optimize
         opttolerance: maximum deviation for which we will still perform replacing
