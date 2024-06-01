@@ -1,6 +1,6 @@
 import pytest
-from src.curve_optimization import *
-from src.vertex_adjustment import _Curve
+from vectorvision.curve_optimization import *
+from vectorvision.vertex_adjustment import _Curve
 
 
 def test_calculate_distance_same_point():
@@ -203,7 +203,7 @@ def curve_different_convexity():
     curve = _Curve(4)
     curve[0].c[0] = (-0.12159090909090886, 1.2454545454545447)
     curve[0].c[1] = (-0.1233695652173914, 0.7554347826086949)
-    curve[0].c[2] = (0.3369565217391305,  0.45652173913043437)
+    curve[0].c[2] = (0.3369565217391305, 0.45652173913043437)
     curve[0].vertex = (-0.5, 1)
     curve[0].tag = 1
 

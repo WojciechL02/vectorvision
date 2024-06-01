@@ -1,4 +1,3 @@
-
 from vertex_adjustment import _Curve
 from utils import interval
 import math
@@ -10,24 +9,25 @@ POTRACE_CURVETO = 1
 POTRACE_CORNER = 2
 
 
-
-def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], point2: tuple[float, float]) -> float:
-
+def calculate_alpha(
+    point0: tuple[float, float],
+    point1: tuple[float, float],
+    point2: tuple[float, float],
+) -> float:
     """Calculate the parameter alpha of Bezier curve necessary for corner detection and smoothing
 
-        Args:
-            point0: starting point
-            point1: vertex point
-            point2: end point
+    Args:
+        point0: starting point
+        point1: vertex point
+        point2: end point
 
-        Returns:
-            value of alpha parameter
+    Returns:
+        value of alpha parameter
     """
 
     point0_np = np.array(point0)
     point1_np = np.array(point1)
     point2_np = np.array(point2)
-
 
     l1_norm_p0_p2 = np.linalg.norm(point2_np - point0_np, ord=1)
     if l1_norm_p0_p2 != 0.0:
@@ -47,17 +47,16 @@ def calculate_alpha(point0: tuple[float, float], point1: tuple[float, float], po
 
 
 def smooth(curve: _Curve, alphamax: float) -> None:
-
     """
-        Calculate the point which is splitting section into two parts in given proportion
+    Calculate the point which is splitting section into two parts in given proportion
 
-        Args:
-            proportion: in which proportion segment should be splitted, ratio ax/ab
-            a: first point
-            b: second point
+    Args:
+        proportion: in which proportion segment should be splitted, ratio ax/ab
+        a: first point
+        b: second point
 
-        Returns:
-            point splitting segment ab in given proportion
+    Returns:
+        point splitting segment ab in given proportion
     """
 
     n_of_segments = curve.n
@@ -69,7 +68,7 @@ def smooth(curve: _Curve, alphamax: float) -> None:
         alpha = calculate_alpha(curve[i].vertex, curve[j].vertex, curve[k].vertex)
         p4 = interval(1 / 2.0, curve[j].vertex, curve[k].vertex)
 
-        if alpha >= alphamax:   # corner found
+        if alpha >= alphamax:  # corner found
 
             curve[j].tag = POTRACE_CORNER
             curve[j].c[1] = curve[j].vertex
@@ -80,8 +79,8 @@ def smooth(curve: _Curve, alphamax: float) -> None:
                 alpha = 0.55
             elif alpha > 1:
                 alpha = 1
-            p2 = interval(0.5+0.5*alpha, curve[i].vertex, curve[j].vertex)
-            p3 = interval(0.5+0.5*alpha, curve[k].vertex, curve[j].vertex)
+            p2 = interval(0.5 + 0.5 * alpha, curve[i].vertex, curve[j].vertex)
+            p3 = interval(0.5 + 0.5 * alpha, curve[k].vertex, curve[j].vertex)
             curve[j].tag = POTRACE_CURVETO
             curve[j].c[0] = p2
             curve[j].c[1] = p3

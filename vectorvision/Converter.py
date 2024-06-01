@@ -1,11 +1,11 @@
 from PIL import ImageOps, Image
 import time
-import os
 import numpy as np
 from path_decomposition import Bitmap
 from smoothing import smooth, POTRACE_CURVETO
 from polygons import get_best_polygon
 from vertex_adjustment import adjust_vertices, _Curve
+from curve_optimization import optimize_curve
 from contextlib import contextmanager
 from typing import TextIO
 
@@ -93,7 +93,7 @@ class Converter:
                     b = segment.c[2]
                     parts.append(f"L{a[0]} {a[1]} {b[0]},{b[1]}")
             parts.append("z")
-            
+
         fp.write(
             f'<path stroke="none" opacity="{opacity} " fill-rule="evenodd" d="{"".join(parts)}"/>'
         )

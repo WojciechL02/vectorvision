@@ -8,9 +8,8 @@ Sums = namedtuple(
 )
 
 
-=
 def calc_sums(path: list) -> namedtuple:
-    """"
+    """
     Calculate cumulative sums for the given path.
 
     Args:
@@ -34,7 +33,6 @@ def calc_sums(path: list) -> namedtuple:
     return sums
 
 
-
 def cyclic(a: int, b: int, c: int) -> bool:
     """
     Determine if the value 'b' is between 'a' and 'c' in a cyclic sense.
@@ -51,8 +49,6 @@ def cyclic(a: int, b: int, c: int) -> bool:
         return a <= b < c
     else:
         return a <= b or b < c
-        
-
 
 
 def get_next_corners(path: list, path_len: int) -> list:
@@ -69,11 +65,14 @@ def get_next_corners(path: list, path_len: int) -> list:
     """
     current_corner_index = 0
     next_corner = [None] * path_len
-    
+
     for i in range(path_len - 1, -1, -1):
-        if path[i][0] != path[current_corner_index][0] and path[i][1] != path[current_corner_index][1]:
-            current_corner_index = i + 1  
-            
+        if (
+            path[i][0] != path[current_corner_index][0]
+            and path[i][1] != path[current_corner_index][1]
+        ):
+            current_corner_index = i + 1
+
         next_corner[i] = current_corner_index
 
     return next_corner
@@ -113,7 +112,9 @@ def compute_vector(point1: tuple, point2: tuple) -> tuple:
     return [x, y]
 
 
-def vector_is_not_between(vector: list, right_constraint: list, left_constraint: list) -> bool:
+def vector_is_not_between(
+    vector: list, right_constraint: list, left_constraint: list
+) -> bool:
     """
     Check if the vector is kept between two constraining vectors.
 
@@ -126,8 +127,8 @@ def vector_is_not_between(vector: list, right_constraint: list, left_constraint:
         bool: True if the vector is not between the two constraints, False otherwise.
     """
     return (
-            np.cross(right_constraint, vector) < 0
-            or np.cross(left_constraint, vector) > 0)
+        np.cross(right_constraint, vector) < 0 or np.cross(left_constraint, vector) > 0
+    )
 
 
 def get_pivot_points(path: list, next_corner: list, path_len: int) -> list:
@@ -145,66 +146,97 @@ def get_pivot_points(path: list, next_corner: list, path_len: int) -> list:
     Returns:
         list: A list of indexes of pivot points for each point of the path.
     """
-    # Counter of the occured directions in a format: [W, S, N, E] 
+    # Counter of the occured directions in a format: [W, S, N, E]
     direction_counter = [0, 0, 0, 0]
-    pivot_points = [None] * path_len 
-    
+    pivot_points = [None] * path_len
+
     for i in range(path_len - 1, -1, -1):
 
         direction_counter[:] = [0, 0, 0, 0]
-        direction = compute_direction(path[i], path[(i+1) % path_len])
+        direction = compute_direction(path[i], path[(i + 1) % path_len])
         direction_counter[direction] += 1
 
         right_constraint = [0, 0]
         left_constraint = [0, 0]
-        
+
         next_corner_index = next_corner[i]
         last_corner_index = i
-        
+
         subpath_vector = compute_vector(path[i], path[next_corner_index])
         direction = compute_direction(path[last_corner_index], path[next_corner_index])
         direction_counter[direction] += 1
-        
+
         # find the last corner that is laying on the straight subpath
         # next_corner_index is the first corner that violates the constraints
-        while not (all(direction_counter) or 
-                  vector_is_not_between(subpath_vector, right_constraint, left_constraint)):
+        while not (
+            all(direction_counter)
+            or vector_is_not_between(subpath_vector, right_constraint, left_constraint)
+        ):
 
             if abs(subpath_vector[0]) > 1 or abs(subpath_vector[1]) > 1:
-                off_x = subpath_vector[0] + (1 if (subpath_vector[1] >= 0 and (subpath_vector[1] > 0 or subpath_vector[0] < 0)) else -1)
-                off_y = subpath_vector[1] + (1 if (subpath_vector[0] <= 0 and (subpath_vector[0] < 0 or subpath_vector[1] < 0)) else -1)
+                off_x = subpath_vector[0] + (
+                    1
+                    if (
+                        subpath_vector[1] >= 0
+                        and (subpath_vector[1] > 0 or subpath_vector[0] < 0)
+                    )
+                    else -1
+                )
+                off_y = subpath_vector[1] + (
+                    1
+                    if (
+                        subpath_vector[0] <= 0
+                        and (subpath_vector[0] < 0 or subpath_vector[1] < 0)
+                    )
+                    else -1
+                )
                 if np.cross(right_constraint, [off_x, off_y]) >= 0:
                     right_constraint[0] = off_x
                     right_constraint[1] = off_y
-                off_x = subpath_vector[0] + (1 if (subpath_vector[1] <= 0 and (subpath_vector[1] < 0 or subpath_vector[0] < 0)) else -1)
-                off_y = subpath_vector[1] + (1 if (subpath_vector[0] >= 0 and (subpath_vector[0] > 0 or subpath_vector[1] < 0)) else -1)
+                off_x = subpath_vector[0] + (
+                    1
+                    if (
+                        subpath_vector[1] <= 0
+                        and (subpath_vector[1] < 0 or subpath_vector[0] < 0)
+                    )
+                    else -1
+                )
+                off_y = subpath_vector[1] + (
+                    1
+                    if (
+                        subpath_vector[0] >= 0
+                        and (subpath_vector[0] > 0 or subpath_vector[1] < 0)
+                    )
+                    else -1
+                )
                 if np.cross(left_constraint, [off_x, off_y]) <= 0:
                     left_constraint[0] = off_x
                     left_constraint[1] = off_y
-                    
+
             last_corner_index = next_corner_index
             next_corner_index = next_corner[last_corner_index]
             subpath_vector = compute_vector(path[i], path[next_corner_index])
-            direction = compute_direction(path[last_corner_index], path[next_corner_index])
+            direction = compute_direction(
+                path[last_corner_index], path[next_corner_index]
+            )
             direction_counter[direction] += 1
 
             if not cyclic(next_corner_index, i, last_corner_index):
                 break
-        
-            
+
         x_direction = np.sign(path[next_corner_index][0] - path[last_corner_index][0])
         y_direction = np.sign(path[next_corner_index][1] - path[last_corner_index][1])
         subpath_vector = compute_vector(path[i], path[last_corner_index])
         direction_vector = (x_direction, y_direction)
-        
+
         # Once we have those 2 corners we can calculate the pivot point
         # between them that forms a straight subpath from the starting point i
-        
+
         # The vector of the desired subpath can be described as:
         #   V = (vector from i to last_corner_index) + (j * direction vector)
         #   Where the value j is the distance from the pivot_index to the last point
-        # We're looking for a vector V that is containted between the L&R constraints 
-        # So that: 
+        # We're looking for a vector V that is containted between the L&R constraints
+        # So that:
         #   np.cross(right_constraint, subpath_vector + pivot_point * direction_vector) >= 0
         #   np.cross(left_constraint, subpath_vector + pivot_point * direction_vector) <= 0
         # The final pivot point = (last_corner_index + j) % path_len
@@ -212,20 +244,19 @@ def get_pivot_points(path: list, next_corner: list, path_len: int) -> list:
 
         a = np.cross(right_constraint, subpath_vector)
         b = np.cross(right_constraint, direction_vector)
- 
+
         c = np.cross(left_constraint, subpath_vector)
         d = np.cross(left_constraint, direction_vector)
 
         if b < 0:
             j = a // -b
         elif d > 0:
-            j = min(path_len, (-c // d)) 
+            j = min(path_len, (-c // d))
         else:
             j = path_len
-            
+
         pivot_points[i] = (last_corner_index + j) % path_len
-    
- 
+
     return pivot_points
 
 
@@ -241,20 +272,20 @@ def get_longest_straight_subpaths(path: list) -> list:
     """
     path_len = len(path)
     longest_straight_subpaths = [None] * path_len
-    
+
     next_corner = get_next_corners(path, path_len)
     pivot_point = get_pivot_points(path, next_corner, path_len)
-    
+
     # Remove the cyclic inaccuracies so that longest_straight_subpaths[i]
     # represents the largest k such that for all i' with i <= i' < k, i' < k <= pivot_point[i'].
-    
+
     j = pivot_point[path_len - 1]
     longest_straight_subpaths[path_len - 1] = j
     for i in range(path_len - 1, -1, -1):
         if cyclic(i + 1, pivot_point[i], j):
             j = pivot_point[i]
         longest_straight_subpaths[i] = j
-        
+
     return longest_straight_subpaths
 
 
@@ -300,11 +331,14 @@ def penalty3(path: list, sums: list, i: int, j: int) -> float:
 
     # Calculate the componenets of the Penalty equation from the paper
     a = (segment_sum_x2 - 2 * segment_sum_x * mid_x) / k + mid_x * mid_x
-    b = (segment_sum_xy - segment_sum_x * mid_y - segment_sum_y * mid_x) / k + mid_x * mid_y
+    b = (
+        segment_sum_xy - segment_sum_x * mid_y - segment_sum_y * mid_x
+    ) / k + mid_x * mid_y
     c = (segment_sum_y2 - 2 * segment_sum_y * mid_y) / k + mid_y * mid_y
 
-
-    penalty = math.sqrt(edge_x * edge_x * a + 2 * edge_x * edge_y * b + edge_y * edge_y * c)
+    penalty = math.sqrt(
+        edge_x * edge_x * a + 2 * edge_x * edge_y * b + edge_y * edge_y * c
+    )
 
     return penalty
 
@@ -321,18 +355,18 @@ def clip_path_forward(longest_straight_subpaths: list, path_len: int) -> list:
         list: Forward clipping path.
     """
     forward_clips = [None] * path_len
-    
+
     for i in range(path_len):
-        c = (longest_straight_subpaths[(i - 1) % path_len] - 1 ) % path_len
+        c = (longest_straight_subpaths[(i - 1) % path_len] - 1) % path_len
         if c == i:
             c = (i + 1) % path_len
         if c < i:
             forward_clips[i] = path_len
         else:
             forward_clips[i] = c
-        
+
     return forward_clips
-    
+
 
 def clip_path_backward(forward_clips: list, path_len: int) -> list:
     """
@@ -345,15 +379,15 @@ def clip_path_backward(forward_clips: list, path_len: int) -> list:
     Returns:
         list: Backward clipping path.
     """
-    
+
     backward_clips = [None] * (path_len + 1)
-    
+
     j = 1
     for i in range(path_len):
         while j <= forward_clips[i]:
             backward_clips[j] = i
             j += 1
-    
+
     return backward_clips
 
 
@@ -378,10 +412,12 @@ def get_segment_bounds_forward(forward_clips: list, path_len: int) -> tuple:
     seg_bounds_F[j] = path_len
     segment_num = j
 
-    return  segment_num, seg_bounds_F
+    return segment_num, seg_bounds_F
 
 
-def get_segment_bounds_backward(backward_clips: list, segment_num: int, path_len: int) -> list:
+def get_segment_bounds_backward(
+    backward_clips: list, segment_num: int, path_len: int
+) -> list:
     """
     Calculate the backward segment bounds.
 
@@ -395,7 +431,7 @@ def get_segment_bounds_backward(backward_clips: list, segment_num: int, path_len
     """
     seg_bounds_B = [None] * (path_len + 1)
     i = path_len
-    
+
     for j in range(segment_num, 0, -1):
         seg_bounds_B[j] = i
         i = backward_clips[i]
@@ -406,7 +442,7 @@ def get_segment_bounds_backward(backward_clips: list, segment_num: int, path_len
 
 def get_best_polygon(path: list) -> list:
     """
-    Find the optimal polygon for the given path. 
+    Find the optimal polygon for the given path.
     This function fills in the m and po components and returns the optimal polygon.
     Assumes i=0 is in the polygon. This is a non-cyclic version.
 
@@ -416,19 +452,27 @@ def get_best_polygon(path: list) -> list:
     Returns:
         list: Optimal polygon as a list of point indices.
     """
-    
+
     path_len = len(path)
     sums = calc_sums(path)
     longest_straight_subpaths = get_longest_straight_subpaths(path)
-    
-    penalties = [None] * (path_len + 1)  
-    best_path_vector = [None] * (path_len + 1) 
-    
-    forward_clips = clip_path_forward(longest_straight_subpaths, path_len)  # longest segment pointer, non-cyclic 
-    backward_clips = clip_path_backward(forward_clips, path_len) # backwards segment pointer, non-cyclic
-    
-    segments_num, seg_bounds_F = get_segment_bounds_forward(forward_clips, path_len) # forward segment bounds
-    seg_bounds_B = get_segment_bounds_backward(backward_clips, segments_num, path_len)  # backward segment bounds
+
+    penalties = [None] * (path_len + 1)
+    best_path_vector = [None] * (path_len + 1)
+
+    forward_clips = clip_path_forward(
+        longest_straight_subpaths, path_len
+    )  # longest segment pointer, non-cyclic
+    backward_clips = clip_path_backward(
+        forward_clips, path_len
+    )  # backwards segment pointer, non-cyclic
+
+    segments_num, seg_bounds_F = get_segment_bounds_forward(
+        forward_clips, path_len
+    )  # forward segment bounds
+    seg_bounds_B = get_segment_bounds_backward(
+        backward_clips, segments_num, path_len
+    )  # backward segment bounds
 
     penalties[0] = 0
     for j in range(1, segments_num + 1):
@@ -450,6 +494,5 @@ def get_best_polygon(path: list) -> list:
         i = best_path_vector[i]
         polygon[j] = i
         j -= 1
-    
-    return polygon
 
+    return polygon
