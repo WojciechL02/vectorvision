@@ -64,12 +64,3 @@ vectorvision.vertex\_adjustment module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: vectorvision
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
