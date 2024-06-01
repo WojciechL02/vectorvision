@@ -6,6 +6,17 @@ from vectorvision.path_decomposition import Turnpolicy
 
 
 def validate_input(args):
+    """
+    Validates the input arguments for the vectorvision CLI tool.
+    This function checks if the input file exists and if its format is supported.
+    It also validates the output file format if an output path is specified.
+
+    Args:
+        args (Namespace): The arguments parsed from the command line.
+
+    Returns:
+        bool: True if all validations pass, False otherwise.
+    """
     if not os.path.exists(args.input_path):
         print(f"Input path: {args.input_path} does not exist.")
         return False

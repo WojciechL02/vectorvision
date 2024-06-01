@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vectorvision"
-version = "0.1.1"
+version = "0.1.2"
 description = "CLI tool for vectorizing raster graphics, written on the basis of the potrace algorithm."
 authors = ["Wojciech Łapacz", "Karol Ziarek", "Kajetan Rożej"]
 license = "MIT"

@@ -12,6 +12,19 @@ from typing import TextIO
 
 @contextmanager
 def create_svg(name: str, width: int, height: int):
+    """
+    A context manager to create an SVG file with the given dimensions.
+    This function opens a file for writing, writes the initial SVG tags with the specified width and height,
+    and ensures that the closing SVG tag is written when the context is exited.
+
+    Args:
+        name (str): The name of the file to create.
+        width (int): The width of the SVG canvas.
+        height (int): The height of the SVG canvas.
+
+    Yields:
+        TextIO: The file handle for the SVG file.
+    """
     file = open(f"{name}", "+w")
     file.write(
         f"""<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -25,7 +38,42 @@ def create_svg(name: str, width: int, height: int):
 
 
 class Converter:
-    def __init__(self, image: Image, turnpolicy, turdsize, alpha_max, is_long_curve, opttolreance, scale):
+    """
+    A class used to convert an image to an SVG file.
+
+    Attributes:
+        image (PIL.Image): The input image to be converted.
+        num_colors (int): The number of colors in the image.
+        turnpolicy (str): The turn policy for bitmap tracing.
+        turdsize (int): The minimum turd size for bitmap tracing.
+        alpha_max (float): The alpha max value for curve smoothing.
+        is_long_curve (bool): Whether to use long curve optimization.
+        opttolerance (float): The optimization tolerance for curve optimization.
+        scale (float): The scale factor for the output SVG.
+    """
+
+    def __init__(
+        self,
+        image: Image,
+        turnpolicy,
+        turdsize,
+        alpha_max,
+        is_long_curve,
+        opttolreance,
+        scale,
+    ):
+        """
+        Initializes the Converter class with the given parameters.
+
+        Args:
+            image (PIL.Image): The input image to be converted.
+            turnpolicy (str): The turn policy for bitmap tracing.
+            turdsize (int): The minimum turd size for bitmap tracing.
+            alpha_max (float): The alpha max value for curve smoothing.
+            is_long_curve (bool): Whether to use long curve optimization.
+            opttolerance (float): The optimization tolerance for curve optimization.
+            scale (float): The scale factor for the output SVG.
+        """
         self.image = image
         self.num_colors = len(image.getcolors(17000000))
         self.turnpolicy = turnpolicy
@@ -36,8 +84,16 @@ class Converter:
         self.scale = scale
 
     def run(self, path):
+        """
+        Runs the conversion process and writes the output to an SVG file.
+
+        Args:
+            path (str): The output path for the SVG file.
+        """
         s = time.process_time()
-        with create_svg(path, self.image.width * self.scale, self.image.height * self.scale) as fh:
+        with create_svg(
+            path, self.image.width * self.scale, self.image.height * self.scale
+        ) as fh:
             if self.num_colors == 2:
                 print("BINARY")
                 a = np.array(self.image)
@@ -67,6 +123,14 @@ class Converter:
         print(f"Finished in {round(e - s, 2)} s\n")
 
     def convert_single_color(self, color_table, fh, opacity=1):
+        """
+        Converts a single color layer to SVG paths and writes them to the file.
+
+        Args:
+            color_table (np.ndarray): The color table for the current layer.
+            fh (TextIO): The file handle for the SVG file.
+            opacity (float, optional): The opacity for the current layer. Defaults to 1.
+        """
         if not np.all(color_table):
             bm = Bitmap(color_table)
             paths_list = bm.generate_paths_list(self.turdsize, self.turnpolicy)
@@ -85,23 +149,36 @@ class Converter:
     def _write_path_to_svg(
         self, fp: TextIO, curves: list[_Curve], opacity: float
     ) -> None:
-        """Writes path of given color to the SVG file."""
+        """
+        Writes the SVG path data for the given curves to the file.
+
+        Args:
+            fp (TextIO): The file handle for the SVG file.
+            curves (list[_Curve]): The list of curves to write.
+            opacity (float): The opacity for the current layer.
+        """
 
         parts = list()
         for curve in curves:
             first_segment = curve.segments[-1].c[2]
-            parts.append(f"M{first_segment[0] * self.scale},{first_segment[1] * self.scale}")
+            parts.append(
+                f"M{first_segment[0] * self.scale},{first_segment[1] * self.scale}"
+            )
             for segment in curve.segments:
                 if segment.tag == POTRACE_CURVETO:
                     a = segment.c[0]
                     b = segment.c[1]
                     c = segment.c[2]
-                    parts.append(f"""C{a[0] * self.scale} {a[1] * self.scale},
-                                  {b[0] * self.scale} {b[1] * self.scale}, {c[0] * self.scale} {c[1] * self.scale}""")
+                    parts.append(
+                        f"""C{a[0] * self.scale} {a[1] * self.scale},
+                                  {b[0] * self.scale} {b[1] * self.scale}, {c[0] * self.scale} {c[1] * self.scale}"""
+                    )
                 else:
                     a = segment.c[1]
                     b = segment.c[2]
-                    parts.append(f"L{a[0] * self.scale} {a[1] * self.scale} {b[0] * self.scale},{b[1] * self.scale}")
+                    parts.append(
+                        f"L{a[0] * self.scale} {a[1] * self.scale} {b[0] * self.scale},{b[1] * self.scale}"
+                    )
             parts.append("z")
 
         fp.write(
