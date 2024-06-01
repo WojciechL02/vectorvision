@@ -32,7 +32,7 @@ def main() -> None:
 
     parser.add_argument("-i", "--input-path", type=str, required=True)
     parser.add_argument("-o", "--output-path", type=str, required=False)
-    parser.add_argument("--turnpolicy", type=str, required=False, default=3, choices=[
+    parser.add_argument("--turnpolicy", type=str, required=False, default='black', choices=[
         'black', 'white', 'left', 'right', 'majority', 'minority'
     ], help='policy which turn take if more than one possibility is legal')
     parser.add_argument("--turdsize", type=int, required=False, default=2,
